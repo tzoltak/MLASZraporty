@@ -1,0 +1,834 @@
+---
+title: "Monitorowanie Losów Edukacyjno-Zawodowych Absolwentów i Młodych Dorosłych"
+subtitle: "RAPORT SZKOŁY: `r params$SZK_nazwa` (`r params$SZK_adres`)"
+author: "Instytut Badań Edukacyjnych"
+date: "`r format(Sys.time(), '%d.%m.%Y')`"
+output:
+  pdf_document:
+    dev: cairo_pdf
+    fig_caption: false
+    toc: true
+    toc_depth: 1
+    includes:
+      in_header: naglowek.tex
+  html_document:
+    toc: true
+    toc_float: true
+    includes:
+      before_body: logo_mlezaimd_gora.html
+      after_body: logo_mlezaimd_dol.html
+lang: pl
+papersize: a4
+fontsize: 11pt
+geometry: margin=20mm
+params:
+  typDokumentu: "pdf"
+  plikZObiektami: "../data/przykladowe_wskazniki.RData"
+  obiektWskazniki: "wskaznikiSzk"
+  obiektWskaznikiPorownanie: "wskaznikiTypSzk"
+  SZK_kod: "bz70vd46"
+  SZK_nazwa: "Przykładowe technikum"
+  SZK_adres: "ulica nieznana 5, nieznane"
+  progLiczebnosci: 10
+  rocznik: 2017
+  wyrownanieTabWykr: "center"
+wskazniki:
+  wskazniki: "szkola"
+  wskaznikiGrPor: "porownanie"
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(MLASZraporty)
+if (!exists("params")) {
+  params = list(typDokumentu = "pdf",
+                plikZObiektami = "../data/przykladowe_wskazniki.RData",
+                obiektWskazniki = "wskaznikiSzk",
+                obiektWskaznikiPorownanie = "wskaznikiTypSzk",
+                SZK_kod = "mn4cb263",
+                progLiczebnosci = 10,
+                rocznik = 2017,
+                wyrownanieTabWykr = "center")
+}
+progLiczebnosci = params$progLiczebnosci
+typDokumentu = params$typDokumentu
+wyrownanieTabWykr = params$wyrownanieTabWykr
+if (params$plikZObiektami != "") {
+  obiektyZeWskaznikami = load(params$plikZObiektami)
+  szkola = get(params$obiektWskazniki) %>% 
+    filter(SZK_kod %in% params$SZK_kod)
+  porownanie = get(params$obiektWskaznikiPorownanie)
+} else {
+  szkola = get(params$obiektWskazniki)
+  porownanie = get(params$obiektWskaznikiPorownanie)
+}
+porownanie = porownanie %>%
+    filter(GRUPA_kod %in% szkola$GRUPA_kod)
+
+
+moznaNaStudia = !grepl("zasadnicza|branżowa", szkola$SZK_typ[[1]])
+if (!("SZK_l_uczn_pop" %in% names(szkola))) {
+  szkola$SZK_l_uczn_pop = list(NA)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "---", "")`
+
+# 1. Informacje o badaniu
+
+Niniejszy raport powstał w ramach projektu *Monitorowanie Losów Edukacyjno-Zawodowych Absolwentów i Młodych Dorosłych* (POWR.02.15.00-00-0004/16) współfinansowanego ze środków Unii Europejskiej w ramach Programu Operacyjnego Wiedza-Edukacja-Rozwój. Wszystkie wyniki przedstawione w raporcie powstały w oparciu o badania terenowe przeprowadzone na losowych próbach uczniów i absolwentów trzech typów szkół: zasadniczych szkół zawodowych, techników i szkół policealnych. Wywiady z uczniami, którzy w trakcie badania byli w ostatniej klasie danej szkoły, zrealizowane zostały w drugim semestrze roku szkolnego 2016/17. Następnie w II kwartale 2018 roku podjęto próbę przeprowadzenia wywiadu z tymi samymi osobami. Ponowny kontakt miał na celu określenie ich losów edukacyjnych i zawodowych po ukończeniu szkoły zawodowej. Spośród 10 102 zbadanych uczniów udało się przeprowadzić wywiad z 7 698 absolwentami: 2 831 absolwentami zasadniczych szkół zawodowych (z 293 szkół), 3 917 absolwentami techników (z 336 szkół) i 950 absolwentami szkół policealnych (ze 163 szkół).
+
+`r ifelse(typDokumentu %in% "pdf", "\\vfill\n\\includegraphics{Belka-Losy-absolwentow-Kolor-PL}", "")`
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 2. Informacje o szkole
+
+**`r szkola$SZK_nazwa`** (`r szkola$SZK_typ`)
+
+**Adres**: `r szkola$SZK_adres`
+
+## 2.1. Analizowana grupa
+
+**Rocznik absolwentów:** `r params$rocznik`
+
+`r paste("**Raport dotyczy absolwentów szkoły, którzy kształcili się w zawodach:**", szkola$zawody)`
+
+**Liczba absolwentów szkoły:** `r ifelse(is.na(szkola$SZK_l_uczn_pop[[1]]), "brak danych", szkola$SZK_l_uczn_pop[[1]])`
+
+**Liczba absolwentów szkoły,**  
+**z którymi udało się zrealizować wywiad:** `r szkola$liczba_zbadanych[[1]]` `r ifelse(is.na(szkola$SZK_l_uczn_pop[[1]]), "", paste0("(", format(round(100 * szkola$liczba_zbadanych[[1]] / szkola$SZK_l_uczn_pop[[1]], 1), decimal.mark = ","), "%)"))`
+
+**Liczba kobiet wśród absolwentów szkoły,**  
+**z którymi udało się zrealizować wywiad:** `r szkola$liczba_zbadanych_kobiet[[1]]` `r paste0("(", format(round(100 * szkola$liczba_zbadanych_kobiet[[1]] / szkola$liczba_zbadanych[[1]], 1), decimal.mark = ","), "%)")`
+
+## 2.2. Grupa porównawcza
+
+**Grupa porównawcza:** `r porownanie$GRUPA_nazwa`
+
+**Liczba szkół w grupie porównawczej:** `r porownanie$liczba_szkol[[1]]`
+
+**Liczba absolwentów w grupie porównawczej:** `r porownanie$liczba_zbadanych[[1]]`
+
+**Liczba kobiet wśród absolwentów w grupie porównawczej:** `r porownanie$liczba_zbadanych_kobiet[[1]]` `r paste0("(", format(round(100 * porownanie$liczba_zbadanych_kobiet[[1]] / porownanie$liczba_zbadanych[[1]], 1), decimal.mark = ","), "%)")`
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 3. Zdawalność egzaminów
+
+## 3.1. Zdawalność egzaminów zawodowych
+
+`r komunikat_o_liczebnosci(szkola$egz_zaw_zdawalnosc[[1]], progLiczebnosci)`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=4.5, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$egz_zaw_zdawalnosc[[1]]$n >= progLiczebnosci) {
+  cat("Zdawalność obliczana jest jako procent absolwentów szkoły, którzy nie później niż w ciągu 6 miesięcy od ukończenia szkoły uzyskali dyplom potwierdzający zdobycie wszystkich kwalifikacji w zawodzie, którego uczyli się w szkole.\n\n")
+
+  tab =
+    data.frame(`egzaminy zawodowe` =
+                 c("zdawalność"),
+               `w tej szkole` = (100 * c(szkola$egz_zaw_zdawalnosc[[1]]$`zdawalność`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$egz_zaw_zdawalnosc[[1]]$`zdawalność`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  
+  wykres_slupkowy_binarny(tab, `egzaminy zawodowe`, maxY = 100) %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE,  align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(!grepl("technikum", szkola$SZK_typ, ignore.case = TRUE), "", paste0("\n##3.2. Zdawalność matury\n\n", komunikat_o_liczebnosci(szkola$egz_zaw_zdawalnosc[[1]], progLiczebnosci), "\n\n"))`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=4.5, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$matura_zdawalnosc[[1]]$n >= progLiczebnosci) {
+  cat("Zdawalność obliczana jest jako procent absolwentów szkoły, którzy w ciągu 6 miesięcy od ukończenia szkoły zdali maturę.\n\n")
+
+  tab =
+    data.frame(`matura` =
+                 c("zdawalność"),
+               `w tej szkole` = (100 * c(szkola$matura_zdawalnosc[[1]]$`zdawalność`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$matura_zdawalnosc[[1]]$`zdawalność`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  
+  wykres_slupkowy_binarny(tab, `matura`, maxY = 100) %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE,  align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 4. Sytuacja absolwentów
+
+`r komunikat_o_liczebnosci(szkola$praca_nauka_6m[[1]], progLiczebnosci)`
+
+```{r echo=FALSE, message=FALSE, fig.height=3, fig.width=6, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$praca_nauka_6m[[1]]$n >= progLiczebnosci |
+    szkola$praca_nauka_9m[[1]]$n >= progLiczebnosci) {
+  cat(paste0("Sytuacja absolwentów podawana jest w podziale na 4 kategorie:\n\n
+  + *tylko pracują* - osoby, które pracują (bez względu na formę zatrudnienia), ale nie kontynuują nauki w innej szkole", ifelse(szkola$SZK_typ %in% "Zasadnicza szkoła zawodowa", "", " lub na studiach"), ",
+  + *pracują i uczą się* - osoby, które jednocześnie pracują (bez względu na formę zatrudnienia) oraz kontynuują naukę w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), ",
+  + *tylko się uczą* - osoby, które nie pracują (w jakiejolwiek formie zatrudnienia), ale kontynuują naukę w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), ",\n
+  + *nie pracują i nie uczą się* - osoby, które nie pracują (w jakiejolwiek formie zatrudnienia), ani nie kontynuują nauki w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), "
+
+Sytuacja podawana jest w dwóch momentach: w szóstym miesiącu od terminu ukończenia szkoły (oznaczony *w szóstym miesiącu* w tabeli poniżej) i w dziewiątym miesiącu od terminu ukończenia szkoły (oznaczony *w dziewiątym miesiącu* w tabeli poniżej).\n\n"))
+  
+  tab =
+    data.frame(`sytuacja\nabsolwentów` = names(szkola$praca_nauka_6m[[1]])[-1],
+               `w szóstym\nmiesiącu\nliczba` = szkola$praca_nauka_6m[[1]][-1] %>% unlist(),
+               `w szóstym\nmiesiącu\n%` = szkola$praca_nauka_6m[[1]][-1] %>% unlist(),
+               `w szóstym\nmiesiącu\n% w grupie\nporównawczej` =
+                 porownanie$praca_nauka_6m[[1]][-1] %>% unlist(),
+               `w dziewiątym\nmiesiącu\nliczba` = szkola$praca_nauka_9m[[1]][-1] %>% unlist(),
+               `w dziewiątym\nmiesiącu\n%` = szkola$praca_nauka_9m[[1]][-1] %>% unlist(),
+               `w dziewiątym\nmiesiącu\n% w grupie\nporównawczej` =
+                 porownanie$praca_nauka_9m[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`sytuacja\nabsolwentów` = sub("nie pracują i nie uczą się",
+                                         "nie pracują\ni nie uczą się",
+                                         `sytuacja\nabsolwentów`),
+           `sytuacja\nabsolwentów` = sub("pracują i uczą się",
+                                         "pracują\ni uczą się",
+                                         `sytuacja\nabsolwentów`),
+           `w szóstym\nmiesiącu\n%` =
+             (`w szóstym\nmiesiącu\n%` / szkola$praca_nauka_6m[[1]]$n * 100) %>% round(1),
+           `w szóstym\nmiesiącu\n% w grupie\nporównawczej` =
+             (`w szóstym\nmiesiącu\n% w grupie\nporównawczej` / porownanie$praca_nauka_6m[[1]]$n * 100) %>% round(1),
+           `w dziewiątym\nmiesiącu\n%` =
+             (`w dziewiątym\nmiesiącu\n%` / szkola$praca_nauka_9m[[1]]$n * 100) %>% round(1),
+           `w dziewiątym\nmiesiącu\n% w grupie\nporównawczej` =
+             (`w dziewiątym\nmiesiącu\n% w grupie\nporównawczej` / porownanie$praca_nauka_9m[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_skumulowany_procenty(tab, `sytuacja\nabsolwentów`, grupa, wskaznik) %>%
+    print()
+  drukuj_tabele(tab, typDokumentu, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 5. Kontynuowanie kształcenia
+
+## 5.1 Formy kontynuowania kształcenia w dziewiątym miesiącu po ukończeniu szkoły
+
+`r komunikat_o_liczebnosci(szkola$nauka_9m[[1]], progLiczebnosci, paste0(", którzy w dziewiątym miesiącu po ukończeniu szkoły kontynuowali kształcenie w szkołach", ifelse(moznaNaStudia, "", " lub na studiach")))`
+ 
+```{r echo=FALSE, message=FALSE, fig.height=2.9, fig.width=4.2, fig.align=wyrownanieTabWykr}
+if (szkola$nauka_9m[[1]]$n >= progLiczebnosci) {
+  if (szkola$SZK_typ[[1]] %in% "Zasadnicza szkoła zawodowa") {
+    szkola$nauka_9m[[1]] =
+      szkola$nauka_9m[[1]][names(szkola$nauka_9m[[1]]) %in% c("n", "LO dla dorosłych")]
+    porownanie$nauka_9m[[1]] =
+      porownanie$nauka_9m[[1]][names(porownanie$nauka_9m[[1]]) %in% c("n", "LO dla dorosłych")]
+  } else {
+    szkola$nauka_9m[[1]] =
+      szkola$nauka_9m[[1]][names(szkola$nauka_9m[[1]]) %in% c("n", "studia stacjonarne",
+                                                              "studia niestacjonarne",
+                                                              "szkoła policealna")]
+    porownanie$nauka_9m[[1]] =
+      porownanie$nauka_9m[[1]][names(porownanie$nauka_9m[[1]]) %in% c("n", "studia stacjonarne",
+                                                                      "studia niestacjonarne",
+                                                                      "szkoła policealna")]
+  }
+  
+  tab =
+    data.frame(`typ szkoły` = names(szkola$nauka_9m[[1]])[-1],
+               `liczba` = szkola$nauka_9m[[1]][-1] %>% unlist(),
+               `%` = szkola$nauka_9m[[1]][-1] %>% unlist(),
+               `% w grupie\nporównawczej` = porownanie$nauka_9m[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (`%` / szkola$nauka_9m[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` = 
+             (`% w grupie\nporównawczej` / porownanie$nauka_9m[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_skumulowany_procenty(tab, `typ szkoły`) %>% print()
+  drukuj_tabele(tab, typDokumentu, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(!grepl("technikum", szkola$SZK_typ, ignore.case = TRUE), "", paste0("\n## 5.2 Wybór kierunku studiów\n\n", komunikat_o_liczebnosci(szkola$studia_gdzie_pierwsze[[1]], progLiczebnosci, ", którzy podjęli dalszą naukę na studiach.")))`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.9, fig.width=4.2, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$studia_gdzie_pierwsze[[1]]$n >= progLiczebnosci &
+    grepl("technikum", szkola$SZK_typ, ignore.case = TRUE)) {
+  
+  cat("Poniżej jako najczęściej wybierane podawane są te kierunki i uczelnie, które wybrało co najmniej 20% spośród uczniów kontynuujących naukę na studiach. Jeśli takich kierunków lub uczelni jest kilka, są one wypisane w kolejności od najczęściej do mniej często wybieranych.\n\n")
+  
+  if (length(szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane kierunki`) == 0) {
+    szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane kierunki` = 
+      "nie ma kierunku studiów, który wybrałoby co najmniej 20% spośród uczniów kontynuujących naukę na studiach"
+  }
+  cat("**Kierunki studiów najczęściej wybierane przez uczniów:**\n\n",
+      paste0("  + ", szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane kierunki`,
+             collapse = ",\n"), "\n\n")
+    
+  if (length(szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane uczelnie`) == 0) {
+    szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane uczelnie` = 
+      "nie ma uczelni, którą wybrałoby co najmniej 20% spośród uczniów kontynuujących naukę na studiach"
+  }
+  cat("**Uczelnie najczęściej wybierane przez uczniów:**\n\n",
+      paste0("  + ", szkola$studia_gdzie_pierwsze[[1]]$`najczęściej wybierane uczelnie`,
+             collapse = ",\n"), "\n\n")
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 6. Zatrudnienie absolwentów
+
+## 6.1. Zatrudnienie absolwentów
+
+`r komunikat_o_liczebnosci(szkola$praca_nauka_6m[[1]], progLiczebnosci)` `r ifelse(typDokumentu %in% "html", "\n\n", "")`Pod uwagę zostały wzięte wszystkie formy zatrudnienia.
+
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=7, fig.align=wyrownanieTabWykr}
+if (szkola$praca_przed_ukonczeniem_szkoly[[1]]$n >= progLiczebnosci |
+    szkola$praca_forma2_6m[[1]]$n >= progLiczebnosci |
+    szkola$praca_forma2_9m[[1]]$n >= progLiczebnosci) {
+  tab =
+    data.frame(zatrudnieni = c("przed ukończeniem szkoły",
+                               "w szóstym miesiącu\npo ukończeniu szkoły",
+                               "w dziewiątym miesiącu\npo ukończeniu szkoły"),
+               `liczba` = c(szkola$praca_przed_ukonczeniem_szkoly[[1]]$`praca przed ukończeniem szkoły`,
+                            szkola$praca_forma2_6m[[1]]$n,
+                            szkola$praca_forma2_9m[[1]]$n),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (liczba / szkola$liczba_zbadanych[[1]] * 100) %>% round(1),
+           `% w grupie\nporównawczej` = c(porownanie$praca_przed_ukonczeniem_szkoly[[1]]$`praca przed ukończeniem szkoły`,
+                                          porownanie$praca_forma2_6m[[1]]$n,
+                                          porownanie$praca_forma2_9m[[1]]$n),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$liczba_zbadanych[[1]] * 100) %>% round(1))
+  
+  wykres_slupkowy_binarny(tab, zatrudnieni) %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE, zamienZnakNowejLinii = " ", align = wyrownanieTabWykr)
+}
+```
+
+## 6.2. Czas od ukończenia szkoły do znalezienia zatrudnienia
+
+`r komunikat_o_liczebnosci(szkola$praca_czas_rozp[[1]], progLiczebnosci, ", którzy nie pracowali przed ukończeniem szkoły, ale znaleźli zatrudnienie w okresie dziewięciu miesięcy od jej ukończenia")` `r ifelse(typDokumentu %in% "html", "\n\n", "")`
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=3.2, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$praca_czas_rozp[[1]]$n >= progLiczebnosci) {
+  cat("Na wykresie:\n
+
+  - dolna krawędź *pudełka* wskazuje czas, w jakim znalazło pracę 25% osób;
+  - górna krawędź *pudełka* wskazuje czas, w jakim znalazło pracę 75% osób;
+  - pogrubiona linia wewnątrz *pudełka* wskazuje czas, w jakim znalazła pracę połowa osób;\n\n")
+  
+  tab =
+    data.frame(`czas do znalezienia pracy` =
+                 c("25% osób znalazło pracę w nie dłużej niż (miesięcy)",
+                   "połowa osób znalazła pracę w nie dłużej niż (miesięcy)",
+                   "75% osób znalazło pracę w nie dłużej niż (miesięcy)",
+                   "średni czas do znalezienia pracy (miesięcy)"),
+               `w tej szkole` = c(szkola$praca_czas_rozp[[1]]$`1.kwartyl`,
+                                  szkola$praca_czas_rozp[[1]]$mediana,
+                                  szkola$praca_czas_rozp[[1]]$`3.kwartyl`,
+                                  szkola$praca_czas_rozp[[1]]$`średnia`) %>% round(1),
+               `w grupie\nporównawczej` = c(porownanie$praca_czas_rozp[[1]]$`1.kwartyl`,
+                                            porownanie$praca_czas_rozp[[1]]$mediana,
+                                            porownanie$praca_czas_rozp[[1]]$`3.kwartyl`,
+                                            porownanie$praca_czas_rozp[[1]]$`średnia`) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  
+  wykres_pudelkowy(tab, `czas do znalezienia pracy`, "liczba miesięcy") %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 6.3. Forma zatrudnienia
+
+### 6.3.1. Pierwsza praca podjęta po ukończeniu szkoły
+
+`r komunikat_o_liczebnosci(szkola$praca_forma2_pierwsza[[1]], progLiczebnosci, ", którzy podjęli pracę w okresie 9 mies. od ukończenia szkoły")`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.5, fig.width=5.5, fig.align=wyrownanieTabWykr}
+if (szkola$praca_forma2_pierwsza[[1]]$n >= progLiczebnosci) {
+  tab =
+    data.frame(`forma zatrudnienia` = names(szkola$praca_forma2_pierwsza[[1]])[-1],
+               `liczba` = szkola$praca_forma2_pierwsza[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (liczba / szkola$praca_forma2_pierwsza[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` = porownanie$praca_forma2_pierwsza[[1]][-1] %>% unlist(),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$praca_forma2_pierwsza[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_skumulowany_procenty(tab, `forma zatrudnienia`) %>% print()
+  drukuj_tabele(tab, typDokumentu, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+`r ifelse((szkola$praca_forma2_bu_6m[[1]]$n >= progLiczebnosci | szkola$praca_forma2_bu_9m[[1]]$n >= progLiczebnosci) & typDokumentu %in% "pdf", "Jeśli któraś z badanych osób pracowała w tym czasie w kilku różnych formach zatrudnienia, to każdą z nich zliczono oddzielnie. Dlatego wartości w kolumnie % mogą sumować się do więcej niż 100.", "")`
+
+### 6.3.2. Praca (prace) wykonywana w dziewiątym miesiącu po ukończeniu szkoły - wszyscy
+
+`r komunikat_o_liczebnosci(szkola$praca_forma2_9m[[1]], progLiczebnosci, ", którzy pracowali w dziewiątym miesiącu od ukończenia szkoły")`
+
+`r ifelse(szkola$praca_forma2_9m[[1]]$n >= progLiczebnosci & !(typDokumentu %in% "pdf"), "Jeśli któraś z badanych osób pracowała w tym czasie w kilku różnych formach zatrudnienia, to każdą z nich zliczono oddzielnie. Dlatego wartości w kolumnie % mogą sumować się do więcej niż 100.", "")`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.2, fig.width=7, fig.align=wyrownanieTabWykr}
+if (szkola$praca_forma2_9m[[1]]$n >= progLiczebnosci) {
+  tab =
+    data.frame(`forma zatrudnienia` = names(szkola$praca_forma2_9m[[1]])[-1],
+               `liczba` = szkola$praca_forma2_9m[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (liczba / szkola$praca_forma2_9m[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` = porownanie$praca_forma2_9m[[1]][-1] %>% unlist(),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$praca_forma2_9m[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_procenty(tab, `forma zatrudnienia`) %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE, align = wyrownanieTabWykr)
+}
+```
+
+### 6.3.3. Praca (prace) wykonywana w dziewiątym miesiącu po ukończeniu szkoły - tylko osoby, które się w tym czasie nie uczyły
+
+`r komunikat_o_liczebnosci(szkola$praca_forma2_bu_9m[[1]], progLiczebnosci, ", którzy pracowali ale nie uczyli się w dziewiątym miesiącu od ukończenia szkoły")`
+
+`r ifelse(szkola$praca_forma2_bu_9m[[1]]$n >= progLiczebnosci & !(typDokumentu %in% "pdf"), "Jeśli któraś z badanych osób pracowała w tym czasie w kilku różnych formach zatrudnienia, to każdą z nich zliczono oddzielnie. Dlatego wartości w kolumnie % mogą sumować się do więcej niż 100.", "")`
+
+```{r echo=FALSE, message=FALSE, fig.height=2.2, fig.width=7, fig.align=wyrownanieTabWykr}
+if (szkola$praca_forma2_bu_9m[[1]]$n >= progLiczebnosci) {
+  tab =
+    data.frame(`forma zatrudnienia` = names(szkola$praca_forma2_bu_9m[[1]])[-1],
+               `liczba` = szkola$praca_forma2_bu_9m[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (liczba / szkola$praca_forma2_bu_9m[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` = porownanie$praca_forma2_bu_9m[[1]][-1] %>% unlist(),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$praca_forma2_bu_9m[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_procenty(tab, `forma zatrudnienia`) %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 6.4. Czas posiadania zatrudnienia w okresie 9 miesięcy od ukończenia szkoły
+
+### 6.4.1. Czas posiadania zatrudnienia w okresie 9 miesięcy od ukończenia szkoły (w jakiejkolwiek formie)
+
+```{r echo=FALSE, message=FALSE, fig.height=2.4, fig.width=6, fig.align=wyrownanieTabWykr}
+tab = data.frame(wskaznik = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w gr. por.` = vector("numeric", 0))
+if (szkola$praca_czas_p9m[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(`% okresu w jakim absolwenci byli zatrudnieni` =
+                 c("połowa osób\nbyła zatrudniona\nnie krócej niż (% okresu)",
+                   "średni czas\nbycia\nzatrudnionym (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$praca_czas_p9m[[1]]$mediana,
+                                         szkola$praca_czas_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$praca_czas_p9m[[1]]$mediana,
+                                                   porownanie$praca_czas_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab1 %>%
+                rename(wskaznik = `% okresu w jakim absolwenci byli zatrudnieni`) %>% 
+                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+}
+if (szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(`% okresu niekontynuowania nauki, w jakim absolwenci byli zatrudnieni` =
+                 c("połowa osób\nbyła zatrudniona\nnie krócej niż (% okresu)",
+                   "średni czas\nbycia\nzatrudnionym (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$mediana,
+                                         szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$praca_czas_gdy_bez_nauki_p9m[[1]]$mediana,
+                                                   porownanie$praca_czas_gdy_bez_nauki_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab2 %>%
+                rename(wskaznik = `% okresu niekontynuowania nauki, w jakim absolwenci byli zatrudnieni`) %>% 
+                mutate(grupa = "tylko w miesiącach\nniekontynuowania nauki"))
+}
+if (szkola$praca_czas_p9m[[1]]$n >= progLiczebnosci |
+    szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  wykres_slupkowy_binarny(tab, wskaznik, grupa, etykietaY = "część okresu",
+                          usunZEtykietX = "[(]% okresu[)]") %>% print()
+}
+```
+
+**Bez względu na kontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$praca_czas_p9m[[1]], progLiczebnosci, "")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$praca_czas_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab1, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+**Tylko w miesiącach niekontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$praca_czas_gdy_bez_nauki_p9m[[1]], progLiczebnosci, ", którzy w ciągu 9 miesięcy od ukończenia szkoły mieli okres niekontynuowania nauki (w przypadku osób, które podjęły dalszą naukę we wrześniu lub październiku okres wakacji traktowany był jako czas kontynuowania nauki)")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab2, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=6.5, fig.align=wyrownanieTabWykr, results='asis'}
+tab = data.frame(wskaznik = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w grupie\nporównawczej` = vector("numeric", 0))
+if (szkola$praca_czas_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(grupa = "bez względu na\nkontynuowania nauki",
+               etykieta = names(szkola$praca_czas_p9m_rozklad[[1]])[-1],
+               `w tej szkole` = 100 * unlist(szkola$praca_czas_p9m_rozklad[[1]][-1]) /
+                 szkola$praca_czas_p9m_rozklad[[1]]$n %>% round(1),
+               `w grupie\nporównawczej` = 100 * unlist(porownanie$praca_czas_p9m_rozklad[[1]][-1]) /
+                 porownanie$praca_czas_p9m_rozklad[[1]]$n %>% round(1),
+               stringsAsFactors = FALSE, check.names = FALSE)
+  tab = rbind(tab, tab1)
+}
+if (szkola$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(grupa = "tylko w miesiącach\nniekontynuowania nauki",
+               etykieta = names(szkola$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]])[-1],
+               `w tej szkole` = 100 * unlist(szkola$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]][-1]) /
+                 szkola$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]]$n %>% round(1),
+               `w grupie\nporównawczej` = 100 * unlist(porownanie$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]][-1]) /
+                 porownanie$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]]$n %>% round(1),
+               stringsAsFactors = FALSE, check.names = FALSE)
+  tab = rbind(tab, tab2)
+}
+if (szkola$praca_czas_p9m_rozklad[[1]]$n >= progLiczebnosci |
+    szkola$praca_czas_gdy_bez_nauki_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  cat("**Rozkłady czasu posiadania zatrudnienia w okresie 9 miesięcy od ukończenia szkoły (w jakiejkolwiek formie)**\n\n")
+  wykres_rozklad_liniowy(tab, grupa, "zatrudnionych nie krócej niż", "absolwentów") %>% print()
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+### 6.4.2. Czas posiadania zatrudnienia w okresie 9 miesięcy od ukończenia szkoły w formie umowy o pracę
+
+```{r echo=FALSE, message=FALSE, fig.height=2.4, fig.width=6, fig.align=wyrownanieTabWykr}
+tab = data.frame(wskaznik = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w gr. por.` = vector("numeric", 0))
+if (szkola$praca_czas_uop_p9m[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(`% okresu w jakim absolwenci byli zatrudnieni` =
+                 c("połowa osób\nbyła zatrudniona\nnie krócej niż (% okresu)",
+                   "średni czas\nbycia\nzatrudnionym (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$praca_czas_uop_p9m[[1]]$mediana,
+                                         szkola$praca_czas_uop_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$praca_czas_uop_p9m[[1]]$mediana,
+                                                   porownanie$praca_czas_uop_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab1 %>%
+                rename(wskaznik = `% okresu w jakim absolwenci byli zatrudnieni`) %>% 
+                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+}
+if (szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(`% okresu niekontynuowania nauki, w jakim absolwenci byli zatrudnieni` =
+                 c("połowa osób\nbyła zatrudniona\nnie krócej niż (% okresu)",
+                   "średni czas\nbycia\nzatrudnionym (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$mediana,
+                                         szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$mediana,
+                                                   porownanie$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab2 %>%
+                rename(wskaznik = `% okresu niekontynuowania nauki, w jakim absolwenci byli zatrudnieni`) %>% 
+                mutate(grupa = "tylko w miesiącach\nniekontynuowania nauki"))
+}
+if (szkola$praca_czas_uop_p9m[[1]]$n >= progLiczebnosci |
+    szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$n >= progLiczebnosci) {
+  wykres_slupkowy_binarny(tab, wskaznik, grupa, etykietaY = "część okresu",
+                          usunZEtykietX = "[(]% okresu[)]") %>% print()
+}
+```
+
+**Umowa o pracę - bez względu na kontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$praca_czas_uop_p9m[[1]], progLiczebnosci, "")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$praca_czas_uop_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab1, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+**Umowa o pracę - tylko w miesiącach niekontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]], progLiczebnosci, ", którzy w ciągu 9 miesięcy od ukończenia szkoły mieli okres niekontynuowania nauki (w przypadku osób, które podjęły dalszą naukę we wrześniu lub październiku okres wakacji traktowany był jako czas kontynuowania nauki)")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab2, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=6.5, fig.align=wyrownanieTabWykr, results='asis'}
+tab = data.frame(wskaznik = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w grupie\nporównawczej` = vector("numeric", 0))
+if (szkola$praca_czas_uop_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(grupa = "bez względu na\nkontynuowania nauki",
+               etykieta = names(szkola$praca_czas_uop_p9m_rozklad[[1]])[-1],
+               `w tej szkole` = 100 * unlist(szkola$praca_czas_uop_p9m_rozklad[[1]][-1]) /
+                 szkola$praca_czas_uop_p9m_rozklad[[1]]$n %>% round(1),
+               `w grupie\nporównawczej` = 100 * unlist(porownanie$praca_czas_uop_p9m_rozklad[[1]][-1]) /
+                 porownanie$praca_czas_uop_p9m_rozklad[[1]]$n %>% round(1),
+               stringsAsFactors = FALSE, check.names = FALSE)
+  tab = rbind(tab, tab1)
+}
+if (szkola$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(grupa = "tylko w miesiącach\nniekontynuowania nauki",
+               etykieta = names(szkola$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]])[-1],
+               `w tej szkole` = 100 * unlist(szkola$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]][-1]) /
+                 szkola$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]]$n %>% round(1),
+               `w grupie\nporównawczej` = 100 * unlist(porownanie$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]][-1]) /
+                 porownanie$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]]$n %>% round(1),
+               stringsAsFactors = FALSE, check.names = FALSE)
+  tab = rbind(tab, tab2)
+}
+if (szkola$praca_czas_uop_p9m_rozklad[[1]]$n >= progLiczebnosci |
+    szkola$praca_czas_gdy_bez_nauki_uop_p9m_rozklad[[1]]$n >= progLiczebnosci) {
+  cat("**Rozkłady czasu posiadania zatrudnienia w okresie 9 miesięcy od ukończenia szkoły w formie umowy o pracę**\n\n")
+  wykres_rozklad_liniowy(tab, grupa, "zatrudnionych na umowę o pracę nie krócej niż", "absolwentów") %>% print()
+}
+```
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 6.5. Zarobki netto
+
+### 6.5.1. Ostatnia praca podjęta w okresie 9 miesięcy po ukończeniu szkoły
+
+`r komunikat_o_liczebnosci(szkola$praca_zarobki_ostatnia[[1]], progLiczebnosci, ", którzy podjęli pracę w okresie 9 mies. od ukończenia szkoły")` `r ifelse(typDokumentu %in% "html", "\n\n", "")`
+```{r echo=FALSE, message=FALSE, fig.height=2.3, fig.width=3.2, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$praca_zarobki_ostatnia[[1]]$n >= progLiczebnosci) {
+  cat("Na wykresie:
+
+  - dolna krawędź *pudełka* wskazuje wartość, której nie przekraczają zarobki 25% osób;
+  - górna krawędź *pudełka* wskazuje wartość, której nie przekraczają zarobki 75% osób;
+  - linia wewnątrz *pudełka* wskazuje wartość, której nie przekraczają zarobki połowy osób;\n\n")
+
+  tab =
+    data.frame(`zarobki netto` =
+                 c("25% osób zarabia nie więcej niż (zł)",
+                   "połowa osób zarabia nie więcej niż (zł)",
+                   "75% osób zarabia nie więcej niż (zł)",
+                   "średnie zarobki (zł)"),
+               `w tej szkole` = c(szkola$praca_zarobki_ostatnia[[1]]$`1.kwartyl`,
+                                  szkola$praca_zarobki_ostatnia[[1]]$mediana,
+                                  szkola$praca_zarobki_ostatnia[[1]]$`3.kwartyl`,
+                                  szkola$praca_zarobki_ostatnia[[1]]$`średnia`) %>% round(0),
+               `w grupie\nporównawczej` = c(porownanie$praca_zarobki_ostatnia[[1]]$`1.kwartyl`,
+                                            porownanie$praca_zarobki_ostatnia[[1]]$mediana,
+                                            porownanie$praca_zarobki_ostatnia[[1]]$`3.kwartyl`,
+                                            porownanie$praca_zarobki_ostatnia[[1]]$`średnia`) %>% round(0),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  powiat = szkola$praca_zarobki_ostatnia[[1]][grep("powiecie",
+                                                   names(szkola$praca_zarobki_ostatnia[[1]]))]
+  
+  wykres_pudelkowy(tab, `zarobki netto`, "zł") %>% print()
+  drukuj_tabele(tab, typDokumentu, FALSE, align = wyrownanieTabWykr) %>% print()
+  cat(names(powiat), " wynosiły (wg BDL GUS) ", powiat[[1]], "zł.\n", sep = "")
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 6.6. Zgodność pracy z wykształceniem
+
+### 6.6.1. Ostatnia praca podjęta w okresie 9 miesięcy po ukończeniu szkoły
+
+`r komunikat_o_liczebnosci(szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]], progLiczebnosci, ", którzy podjęli pracę w okresie 9 mies. od ukończenia szkoły")`
+
+```{r echo=FALSE, message=FALSE, fig.height=3, fig.width=5.5, fig.align=wyrownanieTabWykr}
+if (szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]]$n >= progLiczebnosci) {
+  tab =
+    data.frame(`zgodność pracy z wykształceniem\nw ocenie absolwenta` = names(szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]])[-1],
+               `liczba` = szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]][-1] %>% unlist(),
+               `%` = szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]][-1] %>% unlist(),
+               `% w grupie\nporównawczej` = porownanie$praca_zgodna_z_wyksztalceniem_ostatnia[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (`%` / szkola$praca_zgodna_z_wyksztalceniem_ostatnia[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$praca_zgodna_z_wyksztalceniem_ostatnia[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_skumulowany_procenty(tab, `zgodność pracy z wykształceniem\nw ocenie absolwenta`) %>%
+    print()
+  drukuj_tabele(tab, typDokumentu, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 6.7. Spełnienie oczekiwań dotyczących pracy
+
+### 6.7.1. Ostatnia praca podjęta w okresie 9 miesięcy po ukończeniu szkoły
+
+`r komunikat_o_liczebnosci(szkola$praca_spelnienie_oczekiwan_ostatnia[[1]], progLiczebnosci, ", którzy podjęli pracę w okresie 9 mies. od ukończenia szkoły")`
+
+```{r echo=FALSE, message=FALSE, fig.height=3, fig.width=4.5, fig.align=wyrownanieTabWykr, results='asis'}
+if (szkola$praca_spelnienie_oczekiwan_ostatnia[[1]]$n >= progLiczebnosci) {
+  cat("Badani absolwenci odpowiadali na pytanie: *Proszę ocenić, w jakim stopniu ogólnie obecna/ostatnia praca odpowiada(ła) Pana/Pani oczekiwaniom?*\n\n")
+
+  tab =
+    data.frame(`ocena spełnienia oczekiwań\nabsolwenta przez pracę` = names(szkola$praca_spelnienie_oczekiwan_ostatnia[[1]])[-1],
+               `liczba` = szkola$praca_spelnienie_oczekiwan_ostatnia[[1]][-1] %>% unlist(),
+               check.names = FALSE, stringsAsFactors = FALSE) %>%
+    mutate(`%` = (liczba / szkola$praca_spelnienie_oczekiwan_ostatnia[[1]]$n * 100) %>% round(1),
+           `% w grupie\nporównawczej` = porownanie$praca_spelnienie_oczekiwan_ostatnia[[1]][-1] %>% unlist(),
+           `% w grupie\nporównawczej` =
+             (`% w grupie\nporównawczej` / porownanie$praca_spelnienie_oczekiwan_ostatnia[[1]]$n * 100) %>% round(1))
+  
+  wykres_slupkowy_skumulowany_procenty(tab, `ocena spełnienia oczekiwań\nabsolwenta przez pracę`) %>%
+    print()
+  drukuj_tabele(tab, typDokumentu, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 7. Bezrobocie
+
+
+## 7.1. Absolwenci zarejestrowani jako bezrobotni w urzędach pracy
+
+```{r echo=FALSE, message=FALSE, fig.height=3, fig.width=5.2, fig.align=wyrownanieTabWykr}
+tab = data.frame(`zarejestrowani bezrobotni` = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w gr. por.` = vector("numeric", 0))
+if (szkola$bezrobocie_6m[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(`absolwenci zarejestrowani jako bezrobotni w urzędach pracy` =
+                 c("w szóstym miesiącu\npo ukończeniu szkoły (%)"),
+               `w tej szkole` = (100 * szkola$bezrobocie_6m[[1]]$`zarejestrowani bezrobotni` /
+                                   szkola$bezrobocie_6m[[1]]$n) %>% round(1),
+               `w grupie\nporównawczej` = (100 * porownanie$bezrobocie_6m[[1]]$`zarejestrowani bezrobotni` /
+                                             porownanie$bezrobocie_6m[[1]]$n) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab1 %>% rename(wskaznik = `absolwenci zarejestrowani jako bezrobotni w urzędach pracy`))
+}
+if (szkola$bezrobocie_9m[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(`absolwenci zarejestrowani jako bezrobotni w urzędach pracy` =
+                 c("w dziewiątym miesiącu\npo ukończeniu szkoły (%)"),
+               `w tej szkole` = (100 * szkola$bezrobocie_9m[[1]]$`zarejestrowani bezrobotni` /
+                                   szkola$bezrobocie_9m[[1]]$n) %>% round(1),
+               `w grupie\nporównawczej` = (100 * porownanie$bezrobocie_9m[[1]]$`zarejestrowani bezrobotni` /
+                                             porownanie$bezrobocie_9m[[1]]$n) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab2 %>% rename(wskaznik = `absolwenci zarejestrowani jako bezrobotni w urzędach pracy`))
+}
+if (szkola$bezrobocie_6m[[1]]$n >= progLiczebnosci |
+    szkola$bezrobocie_9m[[1]]$n >= progLiczebnosci) {
+  wykres_slupkowy_binarny(tab, wskaznik, maxY = NA, etykietaY = "bezrobocie",
+                          usunZEtykietX = "[(]%[)]") %>% print()
+}
+```
+
+**W szóstym miesiącu po ukończeniu szkoły**
+
+`r komunikat_o_liczebnosci(szkola$bezrobocie_6m[[1]], progLiczebnosci, ", którzy w dziewiątym miesiącu po ukończeniu szkoły nie byli bierni zawodowo")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr, results="asis"}
+if (szkola$bezrobocie_6m[[1]]$n >= progLiczebnosci) {
+  powiat = szkola$bezrobocie_6m[[1]][grep("powiecie",
+                                          names(szkola$bezrobocie_6m[[1]]))]
+  cat(sub("stopa", "Stopa", names(powiat)), " wynosiła (wg BDL GUS) ",
+      powiat[[1]], "%.\n", sep = "")
+
+  drukuj_tabele(tab1, typDokumentu, FALSE, " ", align = wyrownanieTabWykr) %>% print()
+}
+```
+
+**W dziewiątym miesiącu po ukończeniu szkoły**
+
+`r komunikat_o_liczebnosci(szkola$bezrobocie_9m[[1]], progLiczebnosci, ", którzy w dziewiątym miesiącu po ukończeniu szkoły nie byli bierni zawodowo")`
+
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr, results="asis"}
+if (szkola$bezrobocie_9m[[1]]$n >= progLiczebnosci) {
+  powiat = szkola$bezrobocie_9m[[1]][grep("powiecie",
+                                          names(szkola$bezrobocie_9m[[1]]))]
+  cat(sub("stopa", "Stopa", names(powiat)), " wynosiła (wg BDL GUS) ",
+      powiat[[1]], "%.\n", sep = "")
+  
+  drukuj_tabele(tab2, typDokumentu, FALSE, " ", align = wyrownanieTabWykr) %>% print()
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+## 7.2. Czas bycia zarejestrowanym bezrobotnym w okresie 9 miesięcy od ukończenia szkoły
+
+```{r echo=FALSE, message=FALSE, fig.height=3, fig.width=5.2, fig.align=wyrownanieTabWykr}
+tab = data.frame(wskaznik = vector("character", 0),
+                 `w tej szkole` = vector("numeric", 0),
+                 `w gr. por.` = vector("numeric", 0))
+if (szkola$bezrobocie_czas_p9m[[1]]$n >= progLiczebnosci) {
+  tab1 =
+    data.frame(`% okresu w jakim absolwenci byli zarejestrowani jako bezrobotni` =
+                 c("średni czas\nbycia zarejestrowanym\njako bezrobotny (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$bezrobocie_czas_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$bezrobocie_czas_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab1 %>%
+                rename(wskaznik = `% okresu w jakim absolwenci byli zarejestrowani jako bezrobotni`) %>% 
+                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+}
+if (szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  tab2 =
+    data.frame(`% okresu w jakim absolwenci byli zarejestrowani jako bezrobotni` =
+                 c("średni czas\nbycia zarejestrowanym\njako bezrobotny (% okresu)"),
+               `w tej szkole` = (100 * c(szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$`średnia`)) %>% round(1),
+               `w grupie\nporównawczej` = (100 * c(porownanie$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$`średnia`)) %>% round(1),
+               check.names = FALSE, stringsAsFactors = FALSE)
+  tab = rbind(tab,
+              tab2 %>%
+                rename(wskaznik = `% okresu w jakim absolwenci byli zarejestrowani jako bezrobotni`) %>% 
+                mutate(grupa = "tylko w miesiącach\nniekontynuowania nauki"))
+}
+if (szkola$bezrobocie_czas_p9m[[1]]$n >= progLiczebnosci |
+    szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  wykres_slupkowy_binarny(tab, wskaznik, grupa, maxY = NA, etykietaY = "część okresu",
+                          usunZEtykietX = "[(]% okresu[)]") %>% print()
+}
+```
+
+**Bez względu na kontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$bezrobocie_czas_p9m[[1]], progLiczebnosci, "")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$bezrobocie_czas_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab1, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+**Tylko w miesiącach niekontynuowanie nauki**
+
+`r komunikat_o_liczebnosci(szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]], progLiczebnosci, ", którzy w okresie 9 miesięcy od ukończenia szkoły mieli okres niekontynuowania nauki (w przypadku osób, które podjęły dalszą naukę we wrześniu lub październiku okres wakacji traktowany był jako czas kontynuowania nauki)")`
+
+```{r echo=FALSE, message=FALSE, fig.align=wyrownanieTabWykr}
+if (szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
+  drukuj_tabele(tab2, typDokumentu, FALSE, " ", align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\vfill\n\\includegraphics{Belka-Losy-absolwentow-Kolor-PL}", "")`

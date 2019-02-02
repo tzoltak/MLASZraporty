@@ -1,11 +1,24 @@
 Package: MLASZraporty
 Title: Pakiet do tworzenia raportow szkol na potrzeby projektu MLEZAiMD
-Version: 0.0.0
+Version: 0.1.0
 Authors@R: person("Tomasz", "Żółtak", email = "t.zoltak@ibe.edu.pl", role = c("aut", "cre"))
 Description: Pakiet do przygotowywania raportów szkół, opisujących dalsze losy
     zawodowe i edukacyjne ich absolwentów na podstawie zbiorów danych
     przygotowanych przy pomocy pakietu MLASZdane.
-icense: MIT + file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Depends: R (>= 3.0.0)
+Depends: R (>= 3.5.0)
+Imports:
+    rlang (>= 0.3.1),
+    tibble (>= 2.0.1),
+    tidyr (>= 0.8.2),
+    dplyr (>= 0.7.8),
+    ggplot2 (>= 3.1.0),
+    knitr (>= 1.21),
+    kableExtra (>= 1.0.1),
+    rmarkdown (>= 1.11)
+Suggests:
+    testthat,
+    covr
+RoxygenNote: 6.1.1
