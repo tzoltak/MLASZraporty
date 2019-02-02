@@ -5,11 +5,10 @@ cache: packages
 r:
   - release
 warnings_are_errors: false
-r_github_packages:
-  - r-lib/covr
+script:
+  - R CMD build .
+  - R CMD check *tar.gz --no-tests
 notifications:
   email:
     - zozlak@zozlak.org
     - t.zoltak@ibe.edu.pl
-after_success:
-  - Rscript -e 'covr::codecov()'
