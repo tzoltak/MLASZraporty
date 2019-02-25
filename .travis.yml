@@ -7,7 +7,7 @@ r:
 warnings_are_errors: false
 script:
   - R CMD build .
-  - R CMD check *tar.gz
+  - R CMD check *tar.gz --no-tests
 notifications:
   email:
     - tomek@zozlak.org
