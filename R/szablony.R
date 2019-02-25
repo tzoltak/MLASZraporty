@@ -18,7 +18,7 @@ wypisz_dostepne_szablony = function() {
 okresl_lokalizacje_szablonow = function() {
   sciezkaDoPakietu = find.package("MLASZraporty")
   if (file.exists(paste0(sciezkaDoPakietu, "/inst/szablony_raportow"))) {
-    return(paste0(sciezkaDoPakietu, "/inst/szablony_raportow"))
+    return(paste0(sciezkaDoPakietu, "/inst/szablony_raportow")) # nocov
   } else {
     return(paste0(sciezkaDoPakietu, "/szablony_raportow"))
   }
