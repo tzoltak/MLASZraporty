@@ -1,3 +1,11 @@
-# MLASZraporty 0.0.1 (02.02.2019)
+# MLASZraporty 0.1.1 (26.02.2019)
+
+- Naprawione błędy i usprawnienia:
+  - W przykładowych danych kolumnę SZK_kod zamieniono na nie-listę, co umożliwia
+    bezproblemowe wykonanie przykłądowego kodu z README.md.
+  - W szablonie raportu szkoły usunięte zostały niepotrzebne wywowłania
+    library().
+
+# MLASZraporty 0.1.0 (02.02.2019)
 
   - Pierwsza działająca wersja pakietu.

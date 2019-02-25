@@ -38,22 +38,18 @@ wskazniki:
 ---
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-library(tidyr)
 library(dplyr)
-library(knitr)
-library(kableExtra)
-library(ggplot2)
-library(MLASZraporty)
-if (!exists("params")) {
-  params = list(typDokumentu = "pdf",
-                plikZObiektami = "../data/przykladowe_wskazniki.RData",
-                obiektWskazniki = "wskaznikiSzk",
-                obiektWskaznikiPorownanie = "wskaznikiTypSzk",
-                SZK_kod = "mn4cb263",
-                progLiczebnosci = 10,
-                rocznik = 2017,
-                wyrownanieTabWykr = "center")
-}
+#library(MLASZraporty)
+# if (!exists("params")) {
+#   params = list(typDokumentu = "pdf",
+#                 plikZObiektami = "../data/przykladowe_wskazniki.RData",
+#                 obiektWskazniki = "wskaznikiSzk",
+#                 obiektWskaznikiPorownanie = "wskaznikiTypSzk",
+#                 SZK_kod = "mn4cb263",
+#                 progLiczebnosci = 10,
+#                 rocznik = 2017,
+#                 wyrownanieTabWykr = "center")
+# }
 progLiczebnosci = params$progLiczebnosci
 typDokumentu = params$typDokumentu
 wyrownanieTabWykr = params$wyrownanieTabWykr
