@@ -24,6 +24,12 @@ devtools::install_github('tzoltak/MLASZraporty')
 
 Dokładnie w ten sam sposób można przeprowadzić aktualizację pakietu do najnowszej wersji.
 
+## Zależności
+
+Do poprawnego działania pakiet MLASZraporty potrzebuje, aby w systmie zainstalowany był program [Pandoc](http://pandoc.org). Jeśli na komputerze zainstalowane zostało [RStudio](http://www.rstudio.com/products/rstudio/download), Pandoc najprawdopodobniej został zainstalowany razem z nim i jest gotowy do użycia.
+
+Aby możliwe było generowanie raportów w formacie PDF niezbędna jest również obecność w systemie dystrybucji LaTeX-a (p. [wiki pakietu MLAK](https://github.com/zozlak/MLAK/wiki/1.1-Instalacja)).
+
 # Użycie
 
 Do generowania raportów służy funkcja `generuj_raporty()`. Jej typowe wywołanie wygląda następująco:
@@ -45,9 +51,11 @@ Poszczególne argumenty opisują:
   - `szablon` - plik szablonu raportu, który ma zostać wykorzystany (p. sekcja *Dostępne szablony raportów* poniżej),
   - `wskazniki` - obiekt (ramka danych) zawierająca wartości wskaźników: wiersze reprezentują grupy, dla których mają zostać wygenerowane raporty (np. szkoły), kolumny zawierają poszczególne wskaźniki;
     - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiSzk`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly.Rmd';
+    - w praktycznych zastosowaniach zwykle wykorzystywany będzie obiekt wskaźników na poziomie zagregowanym (np. szkół) przygotowany przy pomocy pakietu [MLASZdane](https://github.com/tzoltak/MLASZdane);
   - `wskaznikiGrPor` - obiekt (ramka danych) zawierająca wartości wskaźników w grupach porównawczych: wiersze reprezentują grupy porównawcze, kolumny zawierają poszczególne wskaźniki; zwykle struktura tego obiektu jest niemal identyczna (z dokładnością do tego, co reprezentują wiersze) do obiektu przekazywanego argumentem `wskazniki`;
     - sposób wyboru odpowiedniej grupy porównawczej do wykorzystania w konkretnym raporcie jest zakodowany w pliku z szablonem raportu;
     - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiTypSzk`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly.Rmd';
+    - w praktycznych zastosowaniach zwykle wykorzystywany będzie obiekt wskaźników na poziomie zagregowanym (np. typów szkół) przygotowany przy pomocy pakietu [MLASZdane](https://github.com/tzoltak/MLASZdane);
   - `kolumnaNazwaPliku` - nazwa kolumny w obiekcie zawierającym wartości wskaźników, która zostanie wykorzystana do nadania nazw plikom raportów;
     - tego argumentu można nie podawać - pliki raportów będę wtedy mieć nazwy *raportNR*, gdzie *NR* to numer wiersza w ramce danych przekazanej argumentem `wskazniki`;
   - `parametry` - lista dodatkowych parametrów, niezbędnych do wygenerowania raportóW na podstawie szablonu; może być specyficzna dla szablonu; najczęściej występujące parametry, które trzeba podać to:
