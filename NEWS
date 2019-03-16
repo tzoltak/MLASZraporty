@@ -1,3 +1,13 @@
+# MLASZraporty 0.1.2 (16.03.2019)
+
+- Naprawione błędy i usprawnienia:
+  - generuj_raport() sprawdza, czy parametry przekazywane render() nie zawierają
+    cudzysłowów ('"'), a jeśli tak, to dba, żeby w pliku md nie były traktowane
+    dosłownie.
+  - W DESCRIPTION pakiet dplyr przeniesiono do Dependencies (z Imports), jako
+    że wywołanie szablonu 'raport_szkoly.Rmd' i tak ładuje ten pakiet przy
+    pomocy wywołania library().
+
 # MLASZraporty 0.1.1 (26.02.2019)
 
 - Naprawione błędy i usprawnienia:

@@ -126,6 +126,13 @@ generuj_raport = function(szablonZeSciezka, nazwaPliku, parametry,
               is.null(wskaznikiGrPor))
   stopifnot(nrow(wskaznikiGrupa) == 1,
             file.access(szablonZeSciezka, 4) == 0)
+  parametry = lapply(parametry, function(x) {
+    if (is.character(x)) {
+      return(gsub('"', '\\\\"', x))
+    } else {
+      return(x)
+    }
+  })
   # render() wywołując knit(), z kolei knit() ma tę własność, że zapisuje
   # "historię" metadanych nt. tworzonych dokumentów dopisując do niej nowe dane
   # po każdym swoim wywołaniu - aż w którymś momencie może być tego za dużo
@@ -135,7 +142,7 @@ generuj_raport = function(szablonZeSciezka, nazwaPliku, parametry,
   render(input = szablonZeSciezka,
          output_format = paste0(parametry$typDokumentu, "_document"),
          output_file = nazwaPliku, output_dir = "./",
-         params = parametry,
-         encoding = "UTF-8", quiet = TRUE)
+         params = parametry, envir = new.env(),
+         encoding = "UTF-8", quiet = TRUE, clean = TRUE)
   knit_meta(clean = TRUE)
 }
