@@ -139,10 +139,15 @@ generuj_raport = function(szablonZeSciezka, nazwaPliku, parametry,
   # i sypie się brakiem pamięci; wywołanie knit_meta() pozwala sczyścić te
   # zapisane metadane (i na wszelki wypadek robię to zarówno po, jak i przed)
   knit_meta(clean = TRUE)
+  # wbrew temu, co mogłoby się wydawać, dodanie do wywołania render()
+  # argumentu envir = new.env() niczego nie czyni bardziej stabilnym, a wręcz
+  # przeciwnie - prowadzi do wywalania się pandoca w niepowtarzalnych miejscach
+  # przy tworzeniu większej liczby raportów w formie PDFów komunikatem
+  # o niemożliwości uzyskania dostępu do pliku w którym ma być zapisany raport
   render(input = szablonZeSciezka,
          output_format = paste0(parametry$typDokumentu, "_document"),
          output_file = nazwaPliku, output_dir = "./",
-         params = parametry, envir = new.env(),
+         params = parametry,
          encoding = "UTF-8", quiet = TRUE, clean = TRUE)
   knit_meta(clean = TRUE)
 }
