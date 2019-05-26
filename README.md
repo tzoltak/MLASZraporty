@@ -58,7 +58,7 @@ Poszczególne argumenty opisują:
     - w praktycznych zastosowaniach zwykle wykorzystywany będzie obiekt wskaźników na poziomie zagregowanym (np. typów szkół) przygotowany przy pomocy pakietu [*MLASZdane*](https://github.com/tzoltak/MLASZdane);
   - `kolumnaNazwaPliku` - nazwa kolumny w obiekcie zawierającym wartości wskaźników, która zostanie wykorzystana do nadania nazw plikom raportów;
     - tego argumentu można nie podawać - pliki raportów będę wtedy mieć nazwy *raportNR*, gdzie *NR* to numer wiersza w ramce danych przekazanej argumentem `wskazniki`;
-  - `parametry` - lista dodatkowych parametrów, niezbędnych do wygenerowania raportóW na podstawie szablonu; może być specyficzna dla szablonu; najczęściej występujące parametry, które trzeba podać to:
+  - `parametry` - lista dodatkowych parametrów, niezbędnych do wygenerowania raportów na podstawie szablonu; może być specyficzna dla szablonu; najczęściej występujące parametry, które trzeba podać to:
     - `typDokumentu` - "pdf" lub "html";
     - `progLiczebnosci` - próg liczby badanych, poniżej której wartości wskaźnika nie zostaną pokazane w raporcie (zamiast tego wygenerowana zostanie informacja o zbyt małej liczbie absolwentów);
     - `rocznik` - rok ukończenia szkoły przez absolwentów;

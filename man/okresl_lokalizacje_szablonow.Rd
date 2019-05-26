@@ -12,7 +12,7 @@ okresl_lokalizacje_szablonow()
 \description{
 Funkcja określa, gdzie znajdują się szablony raportów
 (w zależności od tego, czy pakiet jest testowany, czy już zainstalowany
-znajdują się one albo w folderze 'inst/szablony_arportow' albo w folderze
-'szablony_arportow/' głównego folderu pakietu) i zwraca ścieżkę do
+znajdują się one albo w folderze 'inst/szablony_raportow' albo w folderze
+'szablony_raportow/' głównego folderu pakietu) i zwraca ścieżkę do
 odpowiedniego folderu.
 }

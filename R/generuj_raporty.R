@@ -112,7 +112,7 @@ generuj_raporty = function(szablon, wskazniki, wskaznikiGrPor = NULL,
 #' @param wskaznikiGrPor opcjonalnie ramka danych ze wskaźnikami grup
 #' porównawczych, do wykorzystania przy tworzeniu raportu
 #' @return obiekt zwracany przez funkcję \code{\link[knitr]{knit_meta}}
-#' zawierający metdane dotyczące utworzonego raportu
+#' zawierający metadane dotyczące utworzonego raportu
 #' @importFrom tibble is_tibble
 #' @importFrom knitr knit_meta
 #' @importFrom rmarkdown render

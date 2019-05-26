@@ -5,6 +5,9 @@
 #' \code{\link[ggplot2]{ggplot}}.
 #' @param x ramka danych w postaci \emph{szerokiej}
 #' @return ramka danych w postaci \emph{długiej}
+#' @details Funkcja przekształca ramkę danych na formę \emph{długą} i stara się
+#' zamienić opisowe etykiety parametrów rozkładu (kwartyli, mediany, śreniej) na
+#' nazwy samych parametrów.
 #' @importFrom tibble is_tibble
 #' @importFrom tidyr gather spread
 #' @importFrom dplyr %>% .data case_when mutate one_of

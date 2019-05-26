@@ -18,7 +18,7 @@ wykres ggplot2
 }
 \description{
 Funkcja zwraca wykres słupkowy ilustrujący wartości wskaźników,
-w którym słupki nie są \emph{układane jeden na drugim} tylko obok siebie.
+w którym słupki nie są \emph{układane jeden na drugim}, tylko obok siebie.
 Jest ona odpowiednia do ilustrowania wartości wskaźników procentowych,
 których suma wartości może przekraczać 100\%.
 }

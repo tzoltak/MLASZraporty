@@ -22,7 +22,7 @@ porównawczych, do wykorzystania przy tworzeniu raportu}
 }
 \value{
 obiekt zwracany przez funkcję \code{\link[knitr]{knit_meta}}
-zawierający metdane dotyczące utworzonego raportu
+zawierający metadane dotyczące utworzonego raportu
 }
 \description{
 Funkcja pozwala oddzielić środowisko, w którym odbywa się

@@ -18,3 +18,8 @@ wartości wskaźników, które mają być zilustrowane wykresem pudełkowym do
 postaci, w której może być ona użyta jako argument funkcji
 \code{\link[ggplot2]{ggplot}}.
 }
+\details{
+Funkcja przekształca ramkę danych na formę \emph{długą} i stara się
+zamienić opisowe etykiety parametrów rozkładu (kwartyli, mediany, śreniej) na
+nazwy samych parametrów.
+}

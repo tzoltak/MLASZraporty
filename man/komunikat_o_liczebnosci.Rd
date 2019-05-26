@@ -21,7 +21,7 @@ szkoły")}
 ciąg znaków
 }
 \description{
-Funkcja przygotowuję komunikat o tym, jak liczba absolwentów
+Funkcja przygotowuje komunikat o tym, jaka liczba absolwentów
 została uwzględniona przy obliczaniu wartości wskaźnika lub komunikat o tym,
 że wskaźnik nie może zostać zaprezentowany ze względu na zbyt małą liczbę
 badanych.
