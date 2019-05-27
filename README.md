@@ -15,7 +15,7 @@ Pakiet nie jest wypchnięty na CRAN, więc trzeba instalować go ze źródeł.
 
 Ponieważ jednak zawiera jedynie kod w R, nie ma potrzeby zaopatrywać się w kompilatory, itp.
 
-Instalację najproście przeprowadzić wykorzystując pakiet *devtools*:
+Instalację najprościej przeprowadzić wykorzystując pakiet *devtools*:
 
 ```r
 install.packages('devtools') # potrzebne tylko, gdy nie jest jeszcze zainstalowany
