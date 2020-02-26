@@ -19,7 +19,7 @@ do_wykresu_pudelkowego = function(x) {
             any(grepl("75% osób", x$parametr)) | "3.kwartyl" %in% x$parametr,
             any(grepl("średni", x$parametr)) | "średnia" %in% x$parametr)
 
-  domyslneKlucze = c("w tej szkole",
+  domyslneKlucze = c("w tym powiecie",
                      "w grupie\nporównawczej")
   x %>%
     gather("klucz", "wartosc", -one_of("parametr")) %>%

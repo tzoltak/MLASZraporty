@@ -4,8 +4,14 @@
 \alias{wykres_slupkowy_binarny}
 \title{Wykres slupkowy wskaznika bedacego srednia zmiennej binarnej.}
 \usage{
-wykres_slupkowy_binarny(tabela, zmienna, facet = NULL, maxY = 100,
-  etykietaY = "", usunZEtykietX = "")
+wykres_slupkowy_binarny(
+  tabela,
+  zmienna,
+  facet = NULL,
+  maxY = 100,
+  etykietaY = "",
+  usunZEtykietX = ""
+)
 }
 \arguments{
 \item{tabela}{ramka danych zawierająca zestawienie wartości wskaźników}

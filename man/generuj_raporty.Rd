@@ -4,8 +4,13 @@
 \alias{generuj_raporty}
 \title{Drukowanie raportow z zestawieniami wskaznikow.}
 \usage{
-generuj_raporty(szablon, wskazniki, wskaznikiGrPor = NULL,
-  kolumnaNazwaPliku = NULL, parametry = list())
+generuj_raporty(
+  szablon,
+  wskazniki,
+  wskaznikiGrPor = NULL,
+  kolumnaNazwaPliku = NULL,
+  parametry = list()
+)
 }
 \arguments{
 \item{szablon}{ciąg znaków - nazwa szablonu raportu (por.

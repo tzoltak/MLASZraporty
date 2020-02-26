@@ -4,8 +4,12 @@
 \alias{wykres_pudelkowy}
 \title{Wykres pudelkowy wskaznika.}
 \usage{
-wykres_pudelkowy(tabela, zmienna, etykietaY,
-  funkcjaFormatujacaY = MLASZraporty::dec_przecinek)
+wykres_pudelkowy(
+  tabela,
+  zmienna,
+  etykietaY,
+  funkcjaFormatujacaY = MLASZraporty::dec_przecinek
+)
 }
 \arguments{
 \item{tabela}{ramka danych zawierająca zestawienie wartości wskaźników}

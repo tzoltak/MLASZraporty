@@ -36,15 +36,15 @@ do_wykresu_procenty = function(x) {
   x = suppressWarnings(gather(x, "klucz", "wartosc",
                               -one_of(names(x)[1], "wskaznik", "grupa"))) %>%
     mutate(klucz = factor(.data$klucz,
-                          levels = c(grep("([%]|w tej szkole)$",
+                          levels = c(grep("([%]|w tym powiecie|w tej szkole)$",
                                           .data$klucz, value = TRUE),
                                      grep("w gr[.] por[.]$",
                                           .data$klucz, value = TRUE)) %>%
                             unique(),
-                          labels = c(paste0(sub("([%]|w tej szkole)$", "",
-                                                grep("([%]|w tej szkole)$",
+                          labels = c(paste0(sub("([%]|w tym powiecie)$", "",
+                                                grep("([%]|w tym powiecie)$",
                                                      .data$klucz, value = TRUE)),
-                                            "w tej szkole"),
+                                            "w tym powiecie"),
                                      sub("[%] ", "",
                                          grep("w gr[.] por[.]$",
                                               .data$klucz, value = TRUE))) %>%
@@ -53,13 +53,13 @@ do_wykresu_procenty = function(x) {
                         levels(x$klucz))
   if (!("grupa" %in% names(x))) {
     x = x %>%
-      mutate(grupa = factor(ifelse(grepl("w tej szkole", .data$klucz),
-                                   "w tej szkole", "w grupie\nporównawczej"),
-                            c("w tej szkole", "w grupie\nporównawczej")))
+      mutate(grupa = factor(ifelse(grepl("w tym powiecie", .data$klucz),
+                                   "w tym powiecie", "w grupie\nporównawczej"),
+                            c("w tym powiecie", "w grupie\nporównawczej")))
   }
   if (!("wskaznik" %in% names(x))) {
     x = x %>%
-      mutate(wskaznik = sub("( |\n|)(w tej szkole|w grupie\nporównawczej)$",
+      mutate(wskaznik = sub("( |\n|)(w tym powiecie|w grupie\nporównawczej)$",
                             "",
                             .data$klucz),
              wskaznik = sub("([[:digit:]]+[.]|ym|im)( |\n)(mies[.]|miesiącu)",

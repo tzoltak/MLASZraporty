@@ -4,8 +4,13 @@
 \alias{drukuj_tabele}
 \title{Drukowanie tabeli z wartosciami wskaznikow.}
 \usage{
-drukuj_tabele(tabela, typ = "html", dodajWierszSumy = TRUE,
-  zamienZnakNowejLinii = as.character(NA), align = "center")
+drukuj_tabele(
+  tabela,
+  typ = "html",
+  dodajWierszSumy = TRUE,
+  zamienZnakNowejLinii = as.character(NA),
+  align = "center"
+)
 }
 \arguments{
 \item{tabela}{ramka danych zawierająca zestawienie wartości wskaźników}

@@ -4,8 +4,12 @@
 \alias{wykres_slupkowy_skumulowany_procenty}
 \title{Wykres slupkowy skumulowany wskaznika.}
 \usage{
-wykres_slupkowy_skumulowany_procenty(tabela, zmienna, x = "klucz",
-  facet = NULL)
+wykres_slupkowy_skumulowany_procenty(
+  tabela,
+  zmienna,
+  x = "klucz",
+  facet = NULL
+)
 }
 \arguments{
 \item{tabela}{ramka danych zawierająca zestawienie wartości wskaźników}

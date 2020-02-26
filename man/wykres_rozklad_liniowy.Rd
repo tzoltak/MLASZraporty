@@ -4,8 +4,12 @@
 \alias{wykres_rozklad_liniowy}
 \title{Wykres liniowy wskaznika.}
 \usage{
-wykres_rozklad_liniowy(tabela, facet = NULL, etykietaX = NULL,
-  etykietaY = "częstość")
+wykres_rozklad_liniowy(
+  tabela,
+  facet = NULL,
+  etykietaX = NULL,
+  etykietaY = "częstość"
+)
 }
 \arguments{
 \item{tabela}{ramka danych zawierająca zestawienie wartości wskaźników}

@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 ![KL+RP+IBE+EFS](inst/Belka-Losy-absolwentow-Kolor-PL.png)
 
 [![Travis build status](https://travis-ci.org/tzoltak/MLASZraporty.svg?branch=master)](https://travis-ci.org/tzoltak/MLASZraporty)

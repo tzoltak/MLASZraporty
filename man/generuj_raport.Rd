@@ -4,8 +4,13 @@
 \alias{generuj_raport}
 \title{Funkcje nieeksportowane.}
 \usage{
-generuj_raport(szablonZeSciezka, nazwaPliku, parametry, wskaznikiGrupa,
-  wskaznikiGrPor)
+generuj_raport(
+  szablonZeSciezka,
+  nazwaPliku,
+  parametry,
+  wskaznikiGrupa,
+  wskaznikiGrPor
+)
 }
 \arguments{
 \item{szablonZeSciezka}{ciąg znaków - ścieżka do pliku z szablonem raportu}

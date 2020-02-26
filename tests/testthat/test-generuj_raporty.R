@@ -1,8 +1,9 @@
 wskaznikiSzk$SZK_kod = unlist(wskaznikiSzk$SZK_kod)
+wskaznikiZawPow$UCZ_zawod = unlist(wskaznikiZawPow$UCZ_zawod)
 stanFolderu = list.files()
 
 ################################################################################
-context("Generowanie raportów PDF")
+context("Generowanie raportów PDF - szkoły")
 ################################################################################
 test_that("Raporty PDF na podstawie szablonu 'raport_szkoly.RMD'", {
   nazwyRaportowPDF =
@@ -19,7 +20,7 @@ test_that("Raporty PDF na podstawie szablonu 'raport_szkoly.RMD'", {
 })
 
 ################################################################################
-context("Generowanie raportów HTML")
+context("Generowanie raportów HTML - szkoły")
 ################################################################################
 test_that("Raporty HTML na podstawie szablonu 'raport_szkoly.RMD'", {
   nazwyRaportowPDF =
@@ -35,6 +36,39 @@ test_that("Raporty HTML na podstawie szablonu 'raport_szkoly.RMD'", {
                nazwyRaportowPDF)
 })
 
+################################################################################
+context("Generowanie raportów PDF - powiato-zawody")
+################################################################################
+test_that("Raporty PDF na podstawie szablonu 'raport_powiaty.RMD'", {
+  nazwyRaportowPDF =
+    generuj_raporty('raport_powiaty.Rmd',
+                    wskaznikiZawPow,
+                    wskaznikiZawWoj,
+                    ABS_teryt_powiat,
+                    parametry = list(typDokumentu = "pdf",
+                                     progLiczebnosci = 10,
+                                     rocznik = 2017,
+                                     wyrownanieTabWykr = "center"))
+  expect_equal(paste0(wskaznikiZawPow$ABS_teryt_powiat, ".pdf"),
+               nazwyRaportowPDF)
+})
+
+################################################################################
+context("Generowanie raportów HTML - powiato-zawody")
+################################################################################
+test_that("Raporty HTML na podstawie szablonu 'raport_powiaty.RMD'", {
+  nazwyRaportowPDF =
+    generuj_raporty('raport_powiaty.Rmd',
+                    wskaznikiZawPow,
+                    wskaznikiZawWoj,
+                    ABS_teryt_powiat,
+                    parametry = list(typDokumentu = "html",
+                                     progLiczebnosci = 10,
+                                     rocznik = 2017,
+                                     wyrownanieTabWykr = "center"))
+  expect_equal(paste0(wskaznikiZawPow$ABS_teryt_powiat, ".html"),
+               nazwyRaportowPDF)
+})
 ################################################################################
 context("Wywołania błędów wejścia dla generuj_raporty()")
 ################################################################################
