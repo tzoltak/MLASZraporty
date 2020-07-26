@@ -9,6 +9,7 @@ generuj_raporty(
   wskazniki,
   wskaznikiGrPor = NULL,
   kolumnaNazwaPliku = NULL,
+  kolumnaIdGrupy = "grupa",
   parametry = list()
 )
 }
@@ -25,6 +26,11 @@ porównawczych, do wykorzystania przy tworzeniu raportów}
 \item{kolumnaNazwaPliku}{opcjonalnie wyrażenie lub ciąg znaków - kolumna
 ramki danych przekazanej argumentem \code{wskazniki}, zawierająca nazwy
 plików, do których mają zostać wydrukowane raporty}
+
+\item{kolumnaIdGrupy}{opcjonalnie wyrażenie lub ciąg znaków - kolumna
+występująca zarówno w ramce danych przekazanej argumentem \code{wskazniki},
+jak i w ramce danych przekazanej argumentem \code{wskaznikiGrPor},
+zawierająca idenyfikatory grup, dla których mają zostać przygotowane raporty}
 
 \item{parametry}{lista parametrów przekazywanych do szablonu}
 }

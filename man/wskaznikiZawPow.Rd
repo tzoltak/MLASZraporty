@@ -4,7 +4,9 @@
 \name{wskaznikiZawPow}
 \alias{wskaznikiZawPow}
 \title{Przykladowe wskazniki obliczone na poziomie powiato-zawodow.}
-\format{Ramka danych z 5 wierszami (powiato-zawodami) i 70 kolumnami (wskaznikami).}
+\format{
+Ramka danych z 5 wierszami (powiato-zawodami) i 72 kolumnami (wskaznikami).
+}
 \usage{
 wskaznikiZawPow
 }

@@ -41,9 +41,9 @@ Do generowania raportów służy funkcja `generuj_raporty()`. Jej typowe wywoła
 
 ```r
 library(MLASZraporty)
-generuj_raporty(szablon = 'raport_szkoly.Rmd',
+generuj_raporty(szablon = 'raport_szkoly_1rm.Rmd',
                 wskazniki = wskaznikiSzk,
-                wskaznikiGrPor = wskaznikiTypSzk,
+                wskaznikiGrPor = wskaznikiSzkGrPor,
                 kolumnaNazwaPliku = SZK_kod,
                 parametry = list(typDokumentu = "pdf",
                                  progLiczebnosci = 10,
@@ -55,11 +55,11 @@ Poszczególne argumenty opisują:
 
   - `szablon` - plik szablonu raportu, który ma zostać wykorzystany (p. sekcja *Dostępne szablony raportów* poniżej),
   - `wskazniki` - obiekt (ramka danych) zawierająca wartości wskaźników: wiersze reprezentują grupy, dla których mają zostać wygenerowane raporty (np. szkoły), kolumny zawierają poszczególne wskaźniki;
-    - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiSzk`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly.Rmd';
+    - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiSzk`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly_1rm.Rmd';
     - w praktycznych zastosowaniach zwykle wykorzystywany będzie obiekt wskaźników na poziomie zagregowanym (np. szkół) przygotowany przy pomocy pakietu [*MLASZdane*](https://github.com/tzoltak/MLASZdane);
   - `wskaznikiGrPor` - obiekt (ramka danych) zawierająca wartości wskaźników w grupach porównawczych: wiersze reprezentują grupy porównawcze, kolumny zawierają poszczególne wskaźniki; zwykle struktura tego obiektu jest niemal identyczna (z dokładnością do tego, co reprezentują wiersze) do obiektu przekazywanego argumentem `wskazniki`;
     - sposób wyboru odpowiedniej grupy porównawczej do wykorzystania w konkretnym raporcie jest zakodowany w pliku z szablonem raportu;
-    - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiTypSzk`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly.Rmd';
+    - w wywołaniu powyżej wykorzystywany jest obiekt `wskaznikiSzkGrPor`, stanowiący część pakietu *MLASZraporty*, który zawiera przykładowe dane kompatybilne z szablonem 'raport_szkoly_1rm.Rmd';
     - w praktycznych zastosowaniach zwykle wykorzystywany będzie obiekt wskaźników na poziomie zagregowanym (np. typów szkół) przygotowany przy pomocy pakietu [*MLASZdane*](https://github.com/tzoltak/MLASZdane);
   - `kolumnaNazwaPliku` - nazwa kolumny w obiekcie zawierającym wartości wskaźników, która zostanie wykorzystana do nadania nazw plikom raportów;
     - tego argumentu można nie podawać - pliki raportów będę wtedy mieć nazwy *raportNR*, gdzie *NR* to numer wiersza w ramce danych przekazanej argumentem `wskazniki`;
