@@ -30,7 +30,7 @@ params:
   UCZ_zawod: "Kucharz"
   obiektWskazniki: "wskaznikiZawPow"
   obiektWskaznikiPorownanie: "wskaznikiZawWoj"
-  plikZObiektami: "../../data/przykladowe_wskazniki_zaw_pow.Rdata"
+  plikZObiektami: "../../data/przykladowe_wskazniki_zaw_pow.RData"
   progLiczebnosci: 10
   rocznik: 2017
   typDokumentu: "pdf"

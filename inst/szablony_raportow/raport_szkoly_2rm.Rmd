@@ -1,0 +1,1389 @@
+---
+title: "Raport z internetowego badania uczniów ostatnich klas w roku szkolnym 2019/2020"
+subtitle: |
+  | `r params$nazwa_szkoly`
+  | `r params$adres_szkoly`
+output:
+  pdf_document:
+    dev: cairo_pdf
+    fig_caption: false
+    toc: true
+    toc_depth: 2
+    includes:
+      in_header: naglowek2.tex # Cziocnka Helvetica
+  html_document:
+    toc: true
+    toc_float: true
+    includes:
+      before_body: logo_mlezaimd_gora.html
+      after_body: logo_mlezaimd_dol.html
+lang: pl
+papersize: a4
+fontsize: 11pt
+geometry: margin=20mm
+params:
+  plikZObiektami: "../../data/wskazniki_do_szablonu_dane2rm_przyklady.RData"
+  obiektWskazniki: "szkola"
+  obiektWskaznikiPorownanie: "wojSzk"
+  progLiczebnosci: 10
+  typDokumentu: "pdf"
+  wyrownanieTabWykr: "center"
+  nazwa_szkoly: "nazwa"
+  adres_szkoly: "ulica"
+wskazniki:
+  wskazniki: "szkola"
+  wskaznikiGrPor: "wojSzk"
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+library(MLASZraporty)
+library(kableExtra)
+# if (!exists("params")) {
+#   params = list(typDokumentu = "pdf",
+#                 plikZObiektami = "C:/Users/Bartek/Documents/01_IBE/00_pakiety/MLASZraporty/data/wskazniki_do_szablonu_dane2rm.RData",
+#                 obiektWskazniki = "szkola",
+#                 obiektWskaznikiPorownanie = "wojSzk",
+#                 nazwa_szkoly = "TECHNIKUM NR 1",
+#                 adres_szkoly = "ul. Rzeszowska 78",
+#                 ID_rspo = "17288",
+#                 S1 = "2",
+#                 progLiczebnosci = 10,
+#                 wyrownanieTabWykr = "center")
+# }
+
+progLiczebnosci = params$progLiczebnosci
+typDokumentu = params$typDokumentu
+wyrownanieTabWykr = params$wyrownanieTabWykr
+
+if (params$plikZObiektami != "") {
+  obiektyZeWskaznikami = load(params$plikZObiektami)
+  szkola = get(params$obiektWskazniki) %>% 
+    filter(ID_rspo %in% params$ID_rspo)
+  wojSzk = get(params$obiektWskaznikiPorownanie)
+} else {
+  szkola = get(params$obiektWskazniki)
+  wojSzk = get(params$obiektWskaznikiPorownanie)
+}
+wojSzk = wojSzk %>%
+    filter(ID_rspo %in% szkola$ID_rspo)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+tab_num = function() {
+  nr = get0("___nrTabeli___", .GlobalEnv, ifnotfound = 1)
+  assign("___nrTabeli___", nr + 1, envir = .GlobalEnv)
+  return(nr)
+}
+wyk_num = function() {
+  nr = get0("___nrWykresu___", .GlobalEnv, ifnotfound = 1)
+  assign("___nrWykresu___", nr + 1, envir = .GlobalEnv)
+  return(nr)
+}
+head_2 = function() {
+  nr = get0("___nrRozdz2___", .GlobalEnv, ifnotfound = 1)
+  assign("___nrRozdz2___", nr + 1, envir = .GlobalEnv)
+  return(nr)
+}
+head_3 = function() {
+  nr = get0("___nrRozdz3___", .GlobalEnv, ifnotfound = 1)
+  assign("___nrRozdz3___", nr + 1, envir = .GlobalEnv)
+  return(nr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "---", "")`
+
+`r ifelse(typDokumentu %in% "pdf", "\\vfill\n\\includegraphics{Belka-Losy-absolwentow-Kolor-PL}", "")`
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 1. Wprowadzenie
+
+1. Informacje o badaniu
+
+    a) Raport opiera się na wynikach badania internetowego przeprowadzonego w pierwszym półroczu 2020 roku przez firmę `r szkola$firma[1]` wśród uczniów ostatnich klas badanej szkoły, którą `r szkola$formy_gramatyczne[[1]]$byla_lo` `r szkola$formy_gramatyczne[[1]]$typ_szkoly`.
+```{r, echo = FALSE, message = FALSE, results = 'asis'}
+if (szkola$l_zbadanych[1] == 1) {
+  cat(
+    "    b) Ankietę wypełnił 1 uczeń spośród ",
+    szkola$n_ucz,
+    " uczących się w ostatnich klasach. Oznacza to, że poziom realizacji badania w Państwa szkole wyniósł ",
+    round(szkola$l_zbadanych / szkola$n_ucz * 100),
+    "%.",
+    sep = ""
+  )
+} else if (szkola$l_zbadanych[1] != 1) {
+  cat(
+    "    b) Ankiety wypełniło ",
+    szkola$l_zbadanych,
+    " uczniów spośród ",
+    szkola$n_ucz,
+    " uczących się w ostatnich klasach. Oznacza to, że poziom realizacji badania w Państwa szkole wyniósł ",
+    round(szkola$l_zbadanych / szkola$n_ucz * 100),
+    "%.",
+    sep = ""
+  )
+}
+```
+```{r, echo = FALSE, message = FALSE, results = 'asis'}
+if (szkola$l_zbadanych[1] >= progLiczebnosci) {
+  cat("Wyników nie należy uogólniać na pozostałych uczniów Państwa szkoły.")
+}
+```
+    c) Zaproszenia do udziału w badaniu zostaną skierowane do tych samych respondentów jeszcze trzykrotnie. Wówczas zostaną poproszeni o wypełnienie ankiety jako absolwenci Państwa szkoły. Wyniki kolejnych badań zostaną Państwu udostępnione w ten sam sposób co ten raport.
+    d) Badanie zrealizowano w okresie od marca do czerwca 2020 roku. 
+
+2. Prezentacja wyników w raporcie
+
+```{r, echo = FALSE, message = FALSE, results = 'asis'}
+if (szkola$l_zbadanych[1] >= progLiczebnosci) {
+  cat(
+    "    a) Niektóre z wyników prezentowanych w niniejszym raporcie zestawiono z odpowiedziami uczniów innych ",
+    szkola$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ". Pozwala to umieścić wyniki uzyskane w Państwa szkole w szerszym kontekście. Niemniej, biorąc pod uwagę specyfikę poszczególnych szkół oraz zróżnicowany poziom realizacji badania (wzięła w nim udział tylko część uczniów poproszonych o wypełnienie ankiety), do zaobserwowanych różnic należy podchodzić z dużą ostrożnością.\n",
+    "    b) W raporcie nie są prezentowane opinie zebrane w grupach respondentów liczących mniej niż 10 osób.\n",
+    "    c) W celu zachowania czytelności wykresów, etykiety z wartościami poniżej 6% nie są prezentowane.\n",
+    "    d) Niesumowanie się wartości na niektórych wykresach do 100% wynika również z zaokrągleń.\n",
+    "    e) Ze względu na dużą liczbę raportów (w badaniu wzięli udział uczniowie 1191 szkół), zostały one sporządzone automatycznie.\n",
+    sep = ""
+  )
+} else if (szkola$l_zbadanych[1] < progLiczebnosci) {
+  cat(
+    "    a) W raporcie nie są prezentowane opinie zebrane w grupach respondentów liczących mniej niż 10 osób.\n",
+    "    b) Ze względu na dużą liczbę raportów (w badaniu wzięli udział uczniowie 1191 szkół), zostały one sporządzone automatycznie.\n",
+    sep = ""
+  )
+}
+```
+
+3. Uczniowie Państwa szkoły, których dotyczy raport
+
+    a) Uczniowie ostatnich klas w roku szkolnym 2019/2020.
+    b) Liczba uczniów objętych badaniem: `r szkola$l_zbadanych`, liczba kobiet wśród uczniów objętych badaniem: `r szkola$l_kobiet`.
+```{r, echo = FALSE, message = FALSE, results = 'asis'}
+if (szkola$l_zbadanych[1] >= progLiczebnosci) {
+  cat("    c) Zawody, w których kształcili się respondenci:\n\n")
+  tab = t(as.data.frame(szkola$l_zawod[[1]]))
+  tab = as.data.frame(tab)
+  tab = tab %>% 
+    mutate(zawody = rownames(tab)) %>% 
+    select(zawody, n = V1) %>% 
+    filter(zawody != "n")
+  tab$zawody = gsub(".", " ", tab$zawody, fixed = TRUE)
+  drukuj_tabele(tab, typDokumentu, FALSE, align = wyrownanieTabWykr)
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 2. Wyniki
+
+<!-- ## Wybór szkoły -->
+`r paste0("## 2.", head_2(), ". Wybór szkoły")`
+
+`r ifelse(szkola$ponowny_wybor[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły na pytanie, czy wybraliby ją ponownie, odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$ponowny_wybor[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Wśród uczestników badania z Państwa szkoły ",
+    round(szkola$ponowny_wybor[[1]]$`Raczej tak + Na pewno tak` * 100),
+    "% stwierdziło, że gdyby mieli jeszcze raz wybrać szkołę, to ponownie ",
+    szkola$formy_gramatyczne[[1]]$bylaby_lo,
+    " to Państwa ",
+    szkola$formy_gramatyczne[[1]]$typ_szkoly,
+    ".\n\nNa to samo pytanie odpowiadali również uczniowie innych ",
+    szkola$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ". Na poniższym wykresie odpowiedzi uczestników badania z Państwa szkoły zostały zestawione z ich odpowiedziami.\n",
+    sep = ""
+  )
+}
+```
+
+<!-- Wykres 1 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$ponowny_wybor[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$ponowny_wybor[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1)) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta", "Raczej.tak...Na.pewno.tak"))) %>% 
+    mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                           freq < 0.05 ~ ""),
+           typ = "Państwa szkoła")
+  tab1$rozklad = gsub(".", " ", tab1$rozklad, fixed = TRUE)
+  tab1$rozklad = ordered(tab1$rozklad, levels =
+                           c("Trudno powiedzieć",
+                             "Na pewno nie",
+                             "Raczej nie",
+                             "Raczej tak",
+                             "Na pewno tak"))
+  
+  tab2 = t(as.data.frame(wojSzk$ponowny_wybor[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1)) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta", "Raczej.tak...Na.pewno.tak"))) %>% 
+    mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                           freq < 0.05 ~ ""),
+           typ = "pozostałe szkoły\nz województwa")
+  tab2$rozklad = gsub(".", " ", tab2$rozklad, fixed = TRUE)
+  tab2$rozklad = ordered(tab2$rozklad, levels =
+                           c("Trudno powiedzieć",
+                             "Na pewno nie",
+                             "Raczej nie",
+                             "Raczej tak",
+                             "Na pewno tak"))
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black") +
+    scale_y_continuous(labels = scales::percent) +
+    scale_fill_manual(values = c("#636363", "#fbb4b9", "#f768a1", "#c51b8a", "#7a0177"), guide = guide_legend(reverse = TRUE)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "right", legend.direction = "vertical",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    ggtitle(cat(
+    "**Wykres ",
+    wyk_num(),
+    ": Czy uczniowie ponownie wybraliby szkołę, w której się kształcili?**\n\n",
+    sep = ""
+  ))
+  print(wykres)
+  
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$ponowny_wybor[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$ponowny_wybor[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ", którym zadano pytanie: \"Gdyby teraz mógł/mogła Pan/i wybrać szkołę, to czy ponownie wybrał(a)by Pan/i tę samą szkołę, w której obecnie się Pan/i uczy?\". Szczegółowe dane z wykresu przedstawiono w poniższej tabeli:*",
+    sep = ""
+  )
+  
+  tab = tab1 %>% 
+    left_join(tab2, by = "rozklad") %>% 
+    select(-contains(c("typ", "lab"))) %>% 
+    mutate(xx = paste0(round(freq.x * 100), "%"),
+           yy = paste0(round(freq.y * 100), "%")) %>% 
+    select(-contains("freq")) %>% 
+    arrange(desc(rozklad)) %>% 
+    kable("latex", booktabs = TRUE,
+          col.names = NULL,
+          align = "lcc") %>%
+    kable_styling(position = wyrownanieTabWykr) %>% 
+    add_header_above(c(" ", "Państwa szkoła" = 1, "pozostałe szkoły z województwa" = 1))
+  return(tab)
+}
+```
+
+`r ifelse(szkola$przyg_do_zaw[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ## Przygotowanie do wykonywania zawodu -->
+`r paste0("## 2.", head_2(), ". Przygotowanie do wykonywania zawodu")`
+
+`r ifelse(szkola$przyg_do_zaw[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły na pytanie dotyczące tego w jakim stopniu przygotowała ich do wykonywania zawodu, odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$przyg_do_zaw[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Zdaniem ",
+    round(szkola$przyg_do_zaw[[1]]$`Przygotowała doskonale + dobrze` * 100),
+    "% badanych uczniów, Państwa ",
+    szkola$formy_gramatyczne[[1]]$typ_szkoly,
+    " ",
+    szkola$formy_gramatyczne[[1]]$przygotowala_o,
+    " ich dobrze lub doskonale do wykonywania zawodu, którego uczyli się w tej szkole. Według ",
+    round(szkola$przyg_do_zaw[[1]]$`Nie przygotowała w ogóle + słabo` * 100),
+    "% respondentów ta szkoła nie przygotowała ich w ogóle lub przygotowała słabo do pracy w wyuczonym zawodzie. ",
+    round(szkola$przyg_do_zaw[[1]]$`Przygotowała średnio` * 100),
+    "% respondentów z Państwa szkoły uważało, że zostali przygotowani w średnim stopniu.",
+    sep = ""
+  )
+}
+```
+
+<!-- Wykres 2 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$przyg_do_zaw[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$przyg_do_zaw[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1)) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta", "Nie.przygotowała.w.ogóle...słabo",
+                            "Przygotowała.doskonale...dobrze"))) %>% 
+    mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                           freq < 0.05 ~ ""),
+           typ = "Państwa szkoła")
+  tab1$rozklad = gsub(".", " ", tab1$rozklad, fixed = TRUE)
+  tab1$rozklad = ordered(tab1$rozklad, levels =
+                           c("Trudno powiedzieć",
+                             "Nie przygotowała w ogóle",
+                             "Przygotowała słabo",
+                             "Przygotowała średnio",
+                             "Przygotowała dobrze",
+                             "Przygotowała doskonale"))
+  
+  tab2 = t(as.data.frame(wojSzk$przyg_do_zaw[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1)) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta", "Nie.przygotowała.w.ogóle...słabo",
+                            "Przygotowała.doskonale...dobrze"))) %>% 
+    mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                           freq < 0.05 ~ ""),
+           typ = "pozostałe szkoły\nz województwa")
+  tab2$rozklad = gsub(".", " ", tab2$rozklad, fixed = TRUE)
+  tab2$rozklad = ordered(tab2$rozklad, levels =
+                           c("Trudno powiedzieć",
+                             "Nie przygotowała w ogóle",
+                             "Przygotowała słabo",
+                             "Przygotowała średnio",
+                             "Przygotowała dobrze",
+                             "Przygotowała doskonale"))
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black") +
+    scale_y_continuous(labels = scales::percent) +
+    scale_fill_manual(values = c("#636363", "#fcc5c0", "#fa9fb5", "#f768a1", "#c51b8a", "#7a0177"), guide = guide_legend(reverse = TRUE)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "right",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    ggtitle(cat(
+    "**Wykres ",
+    wyk_num(),
+    ": Opinie uczniów o tym na ile szkoła przygotowała ich do wykonywania zawodu, którego uczyli się w tej szkole**\n\n",
+    sep = ""
+  ))
+  print(wykres)
+  
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$przyg_do_zaw[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$przyg_do_zaw[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ", którym zadano pytanie: \"Jak Pan/i uważa, na ile szkoła przygotowała Pana/iąa do wykonywania zawodu, którego się Pan/i w niej uczy?\". Szczegółowe dane z wykresu przedstawiono w poniższej tabeli:*",
+    sep = ""
+  )
+   
+  tab = tab1 %>% 
+    left_join(tab2, by = "rozklad") %>% 
+    select(-contains(c("typ", "lab"))) %>% 
+    mutate(xx = paste0(round(freq.x * 100), "%"),
+           yy = paste0(round(freq.y * 100), "%")) %>% 
+    select(-contains("freq")) %>% 
+    arrange(desc(rozklad)) %>% 
+    kable("latex", booktabs = TRUE,
+          col.names = NULL,
+          align = "lcc") %>%
+    kable_styling(position = wyrownanieTabWykr) %>% 
+    add_header_above(c(" ", "Państwa szkoła" = 1, "pozostałe szkoły z województwa" = 1))
+  return(tab) 
+}
+```
+
+<!-- Tabela 1 -->
+```{r, echo = FALSE, fig.align = wyrownanieTabWykr, warning = FALSE, results = 'asis'}
+if (szkola$przyg_do_zaw[[1]]$n >= progLiczebnosci) {
+  tab1 = data.frame(szkola$l_zawod_przyg[[1]])
+  tab1 = tab1 %>% 
+    rename(`Zawód` = S2_zawod,
+           `%` = przygotowanie,
+           `Podstawa\nprocentowania` = respN)
+  tab1 = tab1 %>% 
+    filter(`Podstawa\nprocentowania` >= progLiczebnosci)
+  if (nrow(tab1) >= 1) {
+    cat(
+      "Poniższa tabela zawiera informacje na temat poziomu zadowolenia uczniów z przygotowania ich przez szkołę do wykonywania poszczególnych zawodów, których się w niej uczyli. Informacje są prezentowane w odniesieniu do zawodów, w których kształciło się co najmniej 10 respondentów. Wyniki uzyskane wśród uczniów Państwa szkoły zostały zestawione z odpowiedziami uczniów kształcących się w tych samych zawodach w innych szkołach z województwa ",
+      szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+      ".\n\n",
+      sep = ""
+    )
+    tab2 = data.frame(wojSzk$l_zawod_przyg[[1]])
+    tab2 = tab2 %>% 
+      rename(`Zawód` = S2_zawod,
+             `%` = przygotowanie,
+             `Podstawa\nprocentowania` = respN)
+    
+    tab = tab1 %>% 
+      left_join(tab2, by = "Zawód")
+    
+    tab = tab %>% 
+      kable("latex", booktabs = TRUE, escape = FALSE,
+            col.names = NULL,
+            align = "lcccc",
+            format.args = list(decimal.mark = ",", big.mark = " "),
+            caption = cat(
+              "**Tabela ",
+              tab_num(),
+              ": Odsetek uczniów twierdzących, że szkoła przygotowała ich do wykonywania zawodu, którego się w niej uczyli**\n\n",
+              sep = ""
+            )) %>%
+      kable_styling(position = wyrownanieTabWykr) %>%
+      add_header_above(c("zawód", "%" = 1, "Podstawa\nprocentowania" = 1, "%" = 1, "Podstawa\nprocentowania" = 1)) %>% 
+      add_header_above(c("", "Państwa szkoła" = 2, "pozostałe szkoły\nz województwa" = 2))
+    return(tab)
+  }
+}
+```
+
+`r ifelse(szkola$ocena_pnz[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ## Ocena praktycznej nauki zawodu (PNZ) -->
+`r paste0("## 2.", head_2(), ". Ocena praktycznej nauki zawodu (PNZ)")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$ocena_pnz[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Uczniów  poprosiliśmy o ocenę każdej formy PNZ, w której brali udział. Na tej podstawie obliczyliśmy ogólny wskaźnik zadowolenia z praktycznej nauki zawodu. ",
+    szkola$ocena_pnz[[1]]$`Dobrze lub b dobrze`,
+    "% respondentów oceniło, że co najmniej jedna forma PNZ przygotowała ich dobrze lub bardzo dobrze do jego wykonywania. Pozostali uznali, że żadna forma nie przygotowała ich dobrze do wykonywania zawodu.\n\n",
+    sep = ""
+  )
+}
+```
+
+`r ifelse(szkola$ocena_pnz[[1]]$n < progLiczebnosci,"Spośród uczniów Państwa szkoły na pytania czy PNZ przygotowała ich do wykonywania wyuczonego zawodu odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+<!-- Wykres 3 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$ocena_pnz[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$ocena_pnz[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "Państwa szkoła")
+
+  tab2 = t(as.data.frame(wojSzk$ocena_pnz[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "pozostałe szkoły\nz województwa")
+
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "none",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+    ggtitle(cat(
+    "**Wykres ",
+    wyk_num(),
+    ": Opinie uczniów o tym, czy co najmniej jedna forma praktycznej nauki zawodu przygotowała ich dobrze lub bardzo dobrze do wykonywania wyuczonego zawodu**\n\n",
+    sep = ""
+  ))
+  print(wykres)
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$ocena_pnz[[1]]$n >= progLiczebnosci) {
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$ocena_pnz[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$ocena_pnz[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ".*\n\n",
+    "Uczniowie Państwa szkoły, którzy oceniali PNZ wskazali w jakich jej formach brali udział.",
+    sep = ""
+  )
+}
+```
+
+`r ifelse(szkola$ocena_pnz[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły, którzy uczestniczyli w badaniu, żaden nie wskazał formy praktycznej nauki zawodu.", "")`
+
+<!-- Tabela 2 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.align = wyrownanieTabWykr, warning = FALSE}
+if ((szkola$ocena_pnz[[1]]$n >= progLiczebnosci) & (szkola$S1 == 2 | szkola$S1 == 3)) {
+  tab = t(as.data.frame(szkola$uczestnictwo_pnz[[1]]))
+  tab = as.data.frame(tab, stringsAsFactors = FALSE)
+  tab = tab %>% 
+    mutate(rozklad = rownames(tab)) %>%
+    rename(n = V1) %>% 
+    select(rozklad, n) %>% 
+    filter(!(rozklad %in% "etykieta"))
+  tab$rozklad = gsub(".", " ", tab$rozklad, fixed = TRUE)
+  tab$rozklad[grep("CKP  CKZ  CKU", tab$rozklad)] =
+    "zajęcia praktyczne w CKP, CKZ, CKU lub w innej szkole"
+  tab = tab %>% 
+    rename(`formy PNZ` = rozklad)
+  
+  tab = tab %>% 
+    kable("latex", booktabs = TRUE, escape = FALSE,
+          align = "lc",
+          format.args = list(decimal.mark = ",", big.mark = " "),
+          caption = cat(
+            "**Tabela ",
+            tab_num(),
+            ": Formy praktycznej nauki zawodu, w których uczestniczyli respondenci**",
+            sep = ""
+          )) %>%
+    kable_styling(position = wyrownanieTabWykr) %>% 
+    add_header_above(c("formy PNZ", "n" = 1))
+  return(tab)
+  
+  ifelse(sum(as.numeric(tab$n)) > szkola$l_zbadanych,
+         cat("\n\nSuma liczb uczniów odbywających PNZ w poszczególnych formach jest wyższa niż liczba wszystkich uczniów objętych badaniem w Państwa szkole, ponieważ część uczniów stwierdziło, że brali udział w więcej niż jednej formie PNZ."),
+             "")
+  # if (sum(as.numeric(tab$n)) > szkola$l_zbadanych) {
+  #   cat("\n\nSuma liczb uczniów odbywających PNZ w poszczególnych formach jest wyższa niż liczba wszystkich uczniów objętych badaniem w Państwa szkole, ponieważ część uczniów stwierdziło, że brali udział w więcej niż jednej formie PNZ.")
+  # }
+} else if ((szkola$ocena_pnz[[1]]$n >= progLiczebnosci) & (szkola$S1 == 1)) {
+  tab = t(as.data.frame(szkola$uczestnictwo_pnz[[1]]))
+  tab = as.data.frame(tab, stringsAsFactors = FALSE)
+  tab = tab %>% 
+    mutate(rozklad = rownames(tab)) %>%
+    rename(n = V1) %>% 
+    select(rozklad, n) %>% 
+    filter(!(rozklad %in% c("etykieta",
+                            "praktyki.zawodowe.u.pracodawcy.w.Polsce",
+                            "praktyki.zawodowe.u.pracodawcy.za.granicą")))
+  tab$rozklad = gsub(".", " ", tab$rozklad, fixed = TRUE)
+  tab$rozklad[grep("CKP  CKZ  CKU", tab$rozklad)] =
+    "zajęcia praktyczne w CKP, CKZ, CKU lub w innej szkole"
+  tab = tab %>% 
+    rename(`formy PNZ` = rozklad)
+  
+  tab = tab %>% 
+    kable("latex", booktabs = TRUE, escape = FALSE,col.names = NULL,
+          align = "lc",
+          format.args = list(decimal.mark = ",", big.mark = " "),
+          caption = cat(
+            "**Tabela ",
+            tab_num(),
+            ": Formy praktycznej nauki zawodu, w których uczestniczyli respondenci**",
+            sep = ""
+          )) %>%
+    kable_styling(position = wyrownanieTabWykr) %>% 
+    add_header_above(c("formy PNZ", "n" = 1))
+  return(tab)
+  
+  ifelse(sum(as.numeric(tab$n)) > szkola$l_zbadanych,
+         cat("\n\nSuma liczb uczniów odbywających PNZ w poszczególnych formach jest wyższa niż liczba wszystkich uczniów objętych badaniem w Państwa szkole, ponieważ część uczniów stwierdziło, że brali udział w więcej niż jednej formie PNZ."),
+         "")
+  # if (sum(as.numeric(tab$n)) > szkola$l_zbadanych) {
+  #   cat("\n\nSuma liczb uczniów odbywających PNZ w poszczególnych formach jest wyższa niż liczba wszystkich uczniów objętych badaniem w Państwa szkole, ponieważ część uczniów stwierdziło, że brali udział w więcej niż jednej formie PNZ.")
+  # }
+}
+```
+
+`r ifelse((szkola$S1 == 2 | szkola$S1 == 3) & szkola$przyg_zaw_prakt_ANY[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ten blok ma być pod warunkiem S1 = technikum | spolic -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  cat(
+    "## 2.",
+    head_2(),
+    ". Ocena praktyk zawodowych\n\n",
+    sep = ""
+  )
+  if (szkola$przyg_zaw_prakt_ANY[[1]]$n < progLiczebnosci) {
+    cat("Spośród uczniów Państwa szkoły na pytanie czy praktyki zawodowe przygotowały ich do wykonywania wyuczonego zawodu odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.")
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$przyg_zaw_prakt_ANY[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Wśród ",
+    szkola$przyg_zaw_prakt_ANY[[1]]$n,
+    " uczniów Państwa szkoły, którzy odbywali praktyki zawodowe ",
+    szkola$przyg_zaw_prakt_ANY[[1]]$`Przygotowały bardzo dobrze oraz dobrze`,
+    "% uznało, że praktyki te przygotowały ich dobrze lub doskonale do wykonywania zawodu.\n\n",
+    sep = ""
+  )
+}
+```
+
+<!-- Wykres 4 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$przyg_zaw_prakt_ANY[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$przyg_zaw_prakt_ANY[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "Państwa szkoła")
+  
+  tab2 = t(as.data.frame(wojSzk$przyg_zaw_prakt_ANY[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "pozostałe szkoły\nz województwa")
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "none",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+    ggtitle(cat(
+    "**Wykres ",
+    wyk_num(),
+    ": Opinie uczniów o tym na ile praktyki zawodowe przygotowały ich do wykonywania zawodu, którego uczyli się w tej szkole**\n\n",
+    sep = ""
+  ))
+  print(wykres)
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$przyg_zaw_prakt_ANY[[1]]$n >= progLiczebnosci) {
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$przyg_zaw_prakt_ANY[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$przyg_zaw_prakt_ANY[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ".*",
+    sep = ""
+  )
+}
+```
+
+`r ifelse(szkola$przyg_zaw_zaj_ANY[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ## Ocena zajęć praktycznych -->
+`r paste0("## 2.", head_2(), ". Ocena zajęć praktycznych")`
+
+`r ifelse(szkola$przyg_zaw_zaj_ANY[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły na pytanie czy zajęcia praktyczne przygotowały ich do wykonywania wyuczonego zawodu odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$przyg_zaw_zaj_ANY[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Wśród ",
+    szkola$przyg_zaw_zaj_ANY[[1]]$n,
+    " uczniów Państwa szkoły, którzy stwierdzili, że odbywali zajęcia praktyczne, ",
+    szkola$przyg_zaw_zaj_ANY[[1]]$`Przygotowały bardzo dobrze oraz dobrze`,
+    "% uznało, że co najmniej jedne z tych zajęć przygotowały ich dobrze lub bardzo dobrze do wykonywania zawodu.",
+    sep = ""
+  )
+}
+```
+
+<!-- Wykres 5 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$przyg_zaw_zaj_ANY[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$przyg_zaw_zaj_ANY[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "Państwa szkoła")
+  tab1$rozklad = "Dobrze lub bardzo dobrze"
+  
+  tab2 = t(as.data.frame(wojSzk$przyg_zaw_zaj_ANY[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "pozostałe szkoły\nz województwa")
+  tab2$rozklad = "Dobrze lub bardzo dobrze"
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "none",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+    ggtitle(cat(
+    "**Wykres ",
+    wyk_num(),
+    ": Opinie uczniów o tym na ile zajęcia praktyczne przygotowały ich do wykonywania zawodu, którego uczyli się w tej szkole**\n\n",
+    sep = ""
+  ))
+  print(wykres)
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$przyg_zaw_zaj_ANY[[1]]$n >= progLiczebnosci) {
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$przyg_zaw_zaj_ANY[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$przyg_zaw_zaj_ANY[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ".*",
+    sep = ""
+  )
+}
+```
+
+`r ifelse(szkola$S1 == 1 & szkola$nauka_zawod[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- BLOK: ## Ocena przygotowania zawodowego u pracodawcy - młodociani pracownicy 
+jeśli S1 = BS1 -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  cat(
+    "## 2.",
+    head_2(),
+    ". Ocena przygotowania zawodowego u pracodawcy - młodociani pracownicy\n\n",
+    ifelse(szkola$nauka_zawod[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły kształcących się jako młodociani pracownicy, na pytanie na ile nauka u pracodawcy przygotowała ich do wykonywania zawodu odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.\n\n", ""),
+    sep = ""
+  )
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$nauka_zawod[[1]]$n >= progLiczebnosci) {
+    cat(
+      "Wśród ",
+      szkola$nauka_zawod[[1]]$n,
+      " uczniów Państwa szkoły, którzy uczyli się zawodu jako młodociani pracownicy ",
+      round(szkola$nauka_zawod[[1]]$`Przygotowała doskonale + dobrze` * 100),
+      "% uznało, że nauka u pracodawcy przygotowała ich dobrze lub doskonale do wykonywania zawodu.",
+      sep = ""
+    )
+  }
+}
+```
+
+<!-- Wykres 6 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$S1 == 1) {
+  if (szkola$nauka_zawod[[1]]$n >= progLiczebnosci) {
+    tab1 = t(as.data.frame(szkola$nauka_zawod[[1]]))
+    tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+    tab1 = tab1 %>% 
+      mutate(rozklad = rownames(tab1),
+             freq = as.numeric(V1)) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta",
+                              "Przygotowała.doskonale...dobrze"))) %>% 
+      mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                             freq < 0.05 ~ ""),
+             typ = "Państwa szkoła")
+    tab1$rozklad = gsub(".", " ", tab1$rozklad, fixed = TRUE)
+    tab1$rozklad = ordered(tab1$rozklad, levels =
+                             c("Nie przygotowała w ogóle",
+                               "Przygotowała słabo",
+                               "Przygotowała średnio",
+                               "Przygotowała dobrze",
+                               "Przygotowała doskonale"))
+    
+    tab2 = t(as.data.frame(wojSzk$nauka_zawod[[1]]))
+    tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+    tab2 = tab2 %>% 
+      mutate(rozklad = rownames(tab2),
+             freq = as.numeric(V1)) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta",
+                              "Przygotowała.doskonale...dobrze"))) %>% 
+      mutate(lab = case_when(freq >= 0.05 ~ paste0(round(freq * 100), "%"),
+                             freq < 0.05 ~ ""),
+             typ = "pozostałe szkoły\nz województwa")
+    tab2$rozklad = gsub(".", " ", tab2$rozklad, fixed = TRUE)
+    tab2$rozklad = ordered(tab2$rozklad, levels =
+                             c("Nie przygotowała w ogóle",
+                               "Przygotowała słabo",
+                               "Przygotowała średnio",
+                             "Przygotowała dobrze",
+                             "Przygotowała doskonale"))
+    
+    tab = rbind(tab2, tab1)
+    
+    wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+      geom_bar(width = 0.75, stat = "identity", colour = "black") +
+      scale_y_continuous(labels = scales::percent) +
+      scale_fill_manual(values = c("#fcc5c0", "#fa9fb5", "#f768a1", "#c51b8a", "#7a0177"), guide = guide_legend(reverse = TRUE)) +
+      labs(fill = NULL) +
+      geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3) +
+      ylab(NULL) +
+      xlab(NULL) +
+      coord_flip() +
+      theme(legend.position = "right", legend.direction = "vertical",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+      ggtitle(
+        cat("**Wykres ",
+      wyk_num(),
+      ": Opinie uczniów - młodocianych pracowników - o tym na ile nauka u pracodawcy przygotowała ich do wykonywania zawodu**\n\n",
+      sep = "")
+      )
+    print(wykres)
+    
+    cat(
+      "*Wykres przedstawia rozkład odpowiedzi ",
+      szkola$nauka_zawod[[1]]$n,
+      " uczniów Państwa szkoły oraz ",
+      wojSzk$nauka_zawod[[1]]$n,
+      " uczniów innych ",
+      wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+      " z województwa ",
+      szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+      ", którym zadano pytanie: \"Jak Pan/i ocenia, czy nauka u tego pracodawcy przygotowała Pan/i do wykonywania pracy w zawodzie, którego się Pan/i uczył/a?\". Szczegółowe dane z wykresu przedstawiono w poniższej tabeli:*",
+      sep = ""
+    )
+    
+    tab = tab1 %>% 
+      left_join(tab2, by = "rozklad") %>% 
+      select(-contains(c("typ", "lab"))) %>% 
+      mutate(xx = paste0(round(freq.x * 100), "%"),
+             yy = paste0(round(freq.y * 100), "%")) %>% 
+      select(-contains("freq")) %>% 
+      arrange(desc(rozklad)) %>% 
+      kable("latex", booktabs = TRUE,
+            col.names = NULL,
+            align = "lcc") %>%
+      kable_styling(position = wyrownanieTabWykr) %>% 
+      add_header_above(c(" ", "Państwa szkoła" = 1, "pozostałe szkoły z województwa" = 1))
+    return(tab) 
+  }
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "\\newpage", "")`
+
+# 3. Plany na przyszłość
+
+<!-- ## Edukacja -->
+`r paste0("## 3.", head_3(), ". Edukacja")`
+
+`r ifelse(szkola$czy_plany_edu[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły na pytanie dotyczące zamiaru kontynuowania nauki odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$czy_plany_edu[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Podjęcie, w ciągu 6 miesięcy po ukończeniu szkoły, nauki ",
+    szkola$formy_gramatyczne[[1]]$edukacja_plany,
+    " planowało ",
+    szkola$czy_plany_edu[[1]]$`% PL2_1-6 min. 1 odp. kod 3 lub 4`,
+    "% badanych uczniów.",
+    sep = ""
+  )
+}
+```
+
+<!-- Wykres 7 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$czy_plany_edu[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$czy_plany_edu[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "Państwa szkoła")
+  tab1$rozklad = "Raczej/zdecydowanie tak"
+  
+  tab2 = t(as.data.frame(wojSzk$czy_plany_edu[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "pozostałe szkoły\nz województwa")
+  tab2$rozklad = "Raczej/zdecydowanie tak"
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "none",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+            axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+    ggtitle(cat("**Wykres ",
+      wyk_num(),
+      ": Zamiar kontynuowania nauki ",
+      szkola$formy_gramatyczne[[1]]$edukacja_plany,
+      "**\n\n",
+      sep = ""))
+  print(wykres)
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$czy_plany_edu[[1]]$n >= progLiczebnosci) {
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$czy_plany_edu[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$czy_plany_edu[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ".*",
+    sep = ""
+  )
+}
+```
+
+<!-- blok wyświetlany jeśli BS1 -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$plany_6m_bs1[[1]]$n >= progLiczebnosci) {
+    cat(
+      "**Wśród uczniów Państwa szkoły ",
+      szkola$plany_6m_bs1[[1]]$`Zdecydowanie tak + Raczej tak`,
+      "% planowało bezpośrednio po jej ukończeniu rozpocząć naukę w szkole branżowej drugiego stopnia. Z kolei ",
+      szkola$plany_6m_licd[[1]]$`Zdecydowanie tak + Raczej tak`,
+      "% planowało kontynuowanie nauki w liceum dla dorosłych.**",
+      sep = ""
+    )
+  }
+}
+```
+
+<!-- blok wyświetlany jeśli tech lub spolic -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_6m_stud[[1]]$n >= progLiczebnosci) {
+    cat(
+      "**Wśród uczniów Państwa szkoły ",
+      szkola$plany_6m_stud[[1]]$`Zdecydowanie tak + Raczej tak`,
+      "% planowało bezpośrednio po ",
+      szkola$formy_gramatyczne[[1]]$jego_jej,
+      " ukończeniu rozpocząć studia na uczelni.**",
+      sep = ""
+    )
+  }
+}
+```
+
+`r ifelse(szkola$plany_edu_tak[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ## Praca zawodowa -->
+`r paste0("## 3.", head_3(), ". Praca zawodowa")`
+
+<!-- blok wyświetlany jeśli tech lub spolic -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_edu_tak[[1]]$n < progLiczebnosci) {
+    cat("Spośród uczniów Państwa szkoły na pytania dotyczące wykonywania lub zamiaru podjęcia pracy w wyuczonym zawodzie odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.")
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat(
+      "W momencie badania ",
+      szkola$plany_edu_tak[[1]]$`% PL4 = 1 lub PL6 = 1`,
+      "% uczniów Państwa szkoły uznało, że pracują w zawodzie, którego uczą się w szkole albo wyraziło zamiar podjęcia takiej pracy.",
+      sep = ""
+    )
+  }
+}
+```
+
+<!-- Wykres 8 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    tab1 = t(as.data.frame(szkola$plany_edu_tak[[1]]))
+    tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+    tab1 = tab1 %>% 
+      mutate(rozklad = rownames(tab1),
+             freq = as.numeric(V1) / 100) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+      mutate(lab = paste0(freq * 100, "%"),
+             typ = "Państwa szkoła")
+    
+    tab2 = t(as.data.frame(wojSzk$plany_edu_tak[[1]]))
+    tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+    tab2 = tab2 %>% 
+      mutate(rozklad = rownames(tab2),
+             freq = as.numeric(V1) / 100) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+      mutate(lab = paste0(freq * 100, "%"),
+             typ = "pozostałe szkoły\nz województwa")
+    
+    tab = rbind(tab1, tab2)
+    
+    wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+      geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+      scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+      labs(fill = NULL) +
+      geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+      ylab(NULL) +
+      xlab(NULL) +
+      coord_flip() +
+      theme(legend.position = "none",
+            panel.background = element_rect(fill = "white"),
+            axis.ticks.y = element_blank(),
+            axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+      ggtitle(cat("**Wykres ",
+      wyk_num(),
+      ": Uczniowie wykonujący lub zamierzający podjąć pracę w wyuczonym zawodzie w ciągu 12 miesięcy**\n\n",
+      sep = ""))
+    print(wykres)
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat(
+      "*Wykres przedstawia rozkład odpowiedzi ",
+      szkola$plany_edu_tak[[1]]$n,
+      " uczniów Państwa szkoły oraz ",
+      wojSzk$plany_edu_tak[[1]]$n,
+      " uczniów innych ",
+      wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+      " z województwa ",
+      szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+      ".*",
+      sep = ""
+    )
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 2 | szkola$S1 == 3) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat("Przedstawione wyżej wyniki opierają się na odpowiedziach uczniów na szereg pytań. Badanych zapytaliśmy czy pracują zarobkowo, a jeżeli tak, to czy praca jest związana z ich zawodem szkolnym.\n\n",
+        "Uczniowie pracujący zarobkowo w momencie badania: ",
+        szkola$praca_zarobkowa[[1]]$`Uczniowie pracujący zarobkowo w momencie badania`,
+        ", w tym: pracujący w wyuczonym zawodzie: ",
+        szkola$praca_zarobkowa[[1]]$`w tym: pracujący w wyuczonym zawodzie`,
+        "\n\nUczniom pracującym w momencie badania poza zawodem wyuczonym zadano także pytanie o to, czy w ciągu najbliższych 12 miesięcy zamierzają podjąć pracę w zawodzie, którego uczyli się w szkole.\n\nUczniowie pracujący poza zawodem wyuczonym: ",
+        szkola$praca_poza_wyuczonym[[1]]$`Uczniowie pracujący poza zawodem wyuczonym`,
+        ", w tym zamierzający podjąć pracę w zawodzie wyuczonym w ciągu najbliższych 12 miesięcy: ",
+        szkola$praca_poza_wyuczonym[[1]]$`w tym zamierzający podjąć pracę w zawodzie wyuczonym w ciągu N12M`,
+        "\n\nZ kolei osoby, które w momencie badania nie pracowały, w pierwszej kolejności zapytaliśmy o plany podjęcia pracy zarobkowej w ciągu 12 miesięcy. Jeżeli zamierzały ją podjąć, to zapytaliśmy również czy planują, że będzie to praca w wyuczonym zawodzie.\n\nUczniowie nie pracujący w momencie badania: ",
+        szkola$brak_pracy[[1]]$`Uczniowie nie pracujący w momencie badania`,
+        ", w tym: 	zamierzający podjąć pracę zarobkową w ciągu najbliższych 12 miesięcy: ",
+        szkola$brak_pracy[[1]]$`w tym: zamierzający podjąć pracę w ciągu N12M`,
+        ", w tym: planujący podjąć pracę w wyuczonym zawodzie: ",
+        szkola$brak_pracy[[1]]$`w tym: planujący pracę w wyuczonym zawodzie`,
+        "\n\n",
+        "W powyższym zestawieniu nie uwzględniono uczniów, którzy udzielili odpowiedzi \"trudno powiedzieć\".",
+      sep = ""
+      )
+  }
+}
+```
+
+<!-- blok wyświetlany jeśli SB1` -->
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$plany_edu_tak[[1]]$n < progLiczebnosci) {
+    cat("Spośród uczniów Państwa szkoły nie będących młodocianymi pracownikami, na pytania o wykonywanie pracy w wyuczonym zawodzie lub o zamiar jej podjęcia odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.")
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat(
+      "W momencie badania ",
+      szkola$plany_edu_tak[[1]]$`% PL4 = 1 lub PL6 = 1`,
+      "% uczniów Państwa szkoły (oprócz uczniów będących młodocianymi pracownikami) wykonywało wyuczony zawód albo zamierzało podjąć pracę w tym zawodzie w ciągu najbliższych 12 miesięcy.",
+      sep = ""
+    )
+  }
+}
+```
+
+<!-- Wykres 9 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$S1 == 1) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    tab1 = t(as.data.frame(szkola$plany_edu_tak[[1]]))
+    tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+    tab1 = tab1 %>% 
+      mutate(rozklad = rownames(tab1),
+             freq = as.numeric(V1) / 100) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+      mutate(lab = paste0(freq * 100, "%"),
+             typ = "Państwa szkoła")
+    
+    tab2 = t(as.data.frame(wojSzk$plany_edu_tak[[1]]))
+    tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+    tab2 = tab2 %>% 
+      mutate(rozklad = rownames(tab2),
+             freq = as.numeric(V1) / 100) %>% 
+      select(rozklad, freq) %>% 
+      filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+      mutate(lab = paste0(freq * 100, "%"),
+             typ = "pozostałe szkoły\nz województwa")
+    
+    tab = rbind(tab1, tab2)
+    
+    wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+      geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+      scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+      labs(fill = NULL) +
+      geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+      ylab(NULL) +
+      xlab(NULL) +
+      coord_flip() +
+      theme(legend.position = "none",
+            panel.background = element_rect(fill = "white"),
+            axis.ticks.y = element_blank(),
+            axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+      ggtitle(cat("**Wykres ",
+      wyk_num(),
+      ": Uczniowie wykonujący lub zamierzający podjąć pracę w wyuczonym zawodzie w ciągu 12 miesięcy**\n\n",
+      sep = ""))
+    print(wykres)
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat(
+      "*Wykres przedstawia rozkład odpowiedzi ",
+      szkola$plany_edu_tak[[1]]$n,
+      " uczniów Państwa szkoły oraz ",
+      wojSzk$plany_edu_tak[[1]]$n,
+      " uczniów innych ",
+      wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+      " z województwa ",
+      szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+      ".*",
+      sep = ""
+    )
+  }
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$S1 == 1) {
+  if (szkola$plany_edu_tak[[1]]$n >= progLiczebnosci) {
+    cat("Przedstawione wyżej wyniki opierają się na odpowiedziach uczniów (z wyłączeniem pracowników młodocianych) na szereg pytań. Badanych najpierw zapytaliśmy czy pracują zarobkowo, a jeśli tak, to czy ta praca jest związana z ich zawodem szkolnym. \n\nUczniowie pracujący zarobkowo w momencie badania: ",
+        szkola$praca_zarobkowa[[1]]$`Uczniowie pracujący zarobkowo w momencie badania`,
+        ", w tym: pracujący w wyuczonym zawodzie: ",
+        szkola$praca_zarobkowa[[1]]$`w tym: pracujący w wyuczonym zawodzie`,
+        "\n\nUczniom nie będącym młodocianymi pracownikami i pracującym w momencie badania poza zawodem wyuczonym zadano także pytanie o to, czy w ciągu najbliższych 12 miesięcy zamierzają podjąć pracę w zawodzie, którego uczyli się w szkole.\n\nUczniowie pracujący poza zawodem wyuczonym: ",
+        szkola$praca_poza_wyuczonym[[1]]$`Uczniowie pracujący poza zawodem wyuczonym`,
+        ", w tym zamierzający podjąć pracę w zawodzie wyuczonym w ciągu najbliższych 12 miesięcy: ",
+        szkola$praca_poza_wyuczonym[[1]]$`w tym zamierzający podjąć pracę w zawodzie wyuczonym w ciągu N12M`,
+        "\n\nOsoby, które w momencie badania nie pracowały, w pierwszej kolejności zapytaliśmy o plany podjęcia pracy zarobkowej w ciągu 12 miesięcy. Jeżeli zamierzały ją podjąć, to zapytaliśmy również czy planują, że będzie to praca w wyuczonym zawodzie.\n\nUczniowie nie pracujący w momencie badania: ",
+        szkola$brak_pracy[[1]]$`Uczniowie nie pracujący w momencie badania`,
+        ", w tym: 	zamierzający podjąć pracę zarobkową w ciągu najbliższych 12 miesięcy: ",
+        szkola$brak_pracy[[1]]$`w tym: zamierzający podjąć pracę w ciągu N12M`,
+        ", w tym: planujący podjąć pracę w wyuczonym zawodzie: ",
+        szkola$brak_pracy[[1]]$`w tym: planujący pracę w wyuczonym zawodzie`,
+        "\n\nZ kolei pracowników młodocianych, którzy uczyli się w Państwa szkole, zapytaliśmy czy w ciągu 12 miesięcy po zakończeniu przygotowania zawodowego u ich ówczesnego pracodawcy zamierzają podjąć pracę zarobkową.\n\nUczniowie, którzy w momencie badania byli młodocianymi pracownikami: ",
+        szkola$mlodociani_praca[[1]]$`Uczniowie będący młodocianymi pracownikami`,
+        ", w tym zamierzający podjąć pracę zarobkową po zakończeniu przygotowania zawodowego: ",
+        szkola$mlodociani_praca[[1]]$`w tym zamierzający podjąć pracę`,
+        "\n\nMłodocianych pracowników, którzy w momencie udziału w badaniu deklarowali zamiar podjęcia pracy zarobkowej, zapytaliśmy czy chcą ją podjąć w zawodzie, którego uczyli się w szkole.\n\nMłodociani pracownicy zamierzający podjąć pracę zarobkową w wyuczonym zawodzie: ",
+        szkola$mlodociani_praca[[1]]$`Młodociani planujący pracę w wyuczonym zawodzie`,
+         "\n\n",
+        "W powyższym zestawieniu nie uwzględniono uczniów, którzy udzielili odpowiedzi \"trudno powiedzieć\".",
+        sep = ""
+    )
+  }
+}
+```
+
+`r ifelse(szkola$plany_edu_nie[[1]]$n >= progLiczebnosci & typDokumentu %in% "pdf", "\\newpage", "")`
+
+<!-- ## Pozostawanie poza edukacją i rynkiem pracy -->
+`r paste0("## 3.", head_3(), ". Pozostawanie poza edukacją i rynkiem pracy")`
+
+`r ifelse(szkola$plany_edu_nie[[1]]$n < progLiczebnosci, "Spośród uczniów Państwa szkoły na pytania dotyczące wykonywania lub zamiaru podjęcia pracy oraz zamiaru kontynuowania nauki odpowiedziało zbyt mało respondentów (mniej niż 10), żeby wyniki mogły zostać przedstawione w raporcie.", "")`
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$plany_edu_nie[[1]]$n >= progLiczebnosci) {
+  cat(
+    "Poza grupą młodzieży planującą pracę zawodową lub kontynuację kształcenia, badanie umożliwiło zidentyfikowanie uczniów, którzy w momencie badania nie pracowali i w najbliższej przyszłości nie zamierzali podjąć pracy ani dalszej nauki. ")
+  if (szkola$plany_edu_nie[[1]]$`% PL2_1-6 brak odp. 3 | 4 & PL3=2 & PL6=2` == 0) {
+    cat(
+      "Wśród zbadanych uczniów z Państwa szkoły nie było takich osób."
+    )
+  } else {
+    cat(
+      "Tacy uczniowie stanowili ",
+      szkola$plany_edu_nie[[1]]$`% PL2_1-6 brak odp. 3 | 4 & PL3=2 & PL6=2`,
+      "% respondentów z Państwa szkoły.\n\n",
+      sep = ""
+    )
+  }
+}
+```
+
+<!-- Wykres 10 -->
+```{r, echo = FALSE, message = FALSE, results = 'asis', fig.height = 2.5, fig.align = wyrownanieTabWykr, warning = FALSE}
+if (szkola$plany_edu_nie[[1]]$n >= progLiczebnosci) {
+  tab1 = t(as.data.frame(szkola$plany_edu_nie[[1]]))
+  tab1 = as.data.frame(tab1, stringsAsFactors = FALSE)
+  tab1 = tab1 %>% 
+    mutate(rozklad = rownames(tab1),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "Państwa szkoła")
+  
+  tab2 = t(as.data.frame(wojSzk$plany_edu_nie[[1]]))
+  tab2 = as.data.frame(tab2, stringsAsFactors = FALSE)
+  tab2 = tab2 %>% 
+    mutate(rozklad = rownames(tab2),
+           freq = as.numeric(V1) / 100) %>% 
+    select(rozklad, freq) %>% 
+    filter(!(rozklad %in% c("n", "etykieta"))) %>% 
+    mutate(lab = paste0(freq * 100, "%"),
+           typ = "pozostałe szkoły\nz województwa")
+  
+  tab = rbind(tab1, tab2)
+  
+  wykres = ggplot(tab, aes(x = reorder(typ, desc(typ)), y = freq, fill = rozklad)) +
+    geom_bar(width = 0.75, stat = "identity", colour = "black", fill = "#f768a1") +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+    labs(fill = NULL) +
+    geom_text(aes(label = lab), position = position_stack(vjust = 0.5), size = 3, hjust = ifelse(tab$freq < 0.05, -1.3, 0.5)) +
+    ylab(NULL) +
+    xlab(NULL) +
+    coord_flip() +
+    theme(legend.position = "none",
+          panel.background = element_rect(fill = "white"),
+          axis.ticks.y = element_blank(),
+          axis.ticks.x = element_blank()) +
+    geom_rect(xmin = 0.5, xmax = 2.5, ymin = 0, ymax = 1, colour = "black", alpha = 0, size = 0.25) +
+    ggtitle(cat("**Wykres ",
+      wyk_num(),
+      ": Uczniowie nie pracujący i nie zamierzający podjąć pracy ani dalszej nauki w najbliższej przyszłości (odpowiednio: w ciągu 12 i 6 miesięcy)**\n\n",
+      sep = ""))
+  print(wykres)
+}
+```
+
+```{r, echo = FALSE, results = 'asis'}
+if (szkola$plany_edu_nie[[1]]$n >= progLiczebnosci) {
+  cat(
+    "*Wykres przedstawia rozkład odpowiedzi ",
+    szkola$plany_edu_nie[[1]]$n,
+    " uczniów Państwa szkoły oraz ",
+    wojSzk$plany_edu_nie[[1]]$n,
+    " uczniów innych ",
+    wojSzk$formy_gramatyczne[[1]]$szkola_lm,
+    " z województwa ",
+    szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+    ".*",
+    sep = ""
+  )
+}
+```
+
+`r ifelse(typDokumentu %in% "pdf", "---", "")`
+
+Więcej informacji o wynikach badania znajdą Państwo na stronie:
+
+https://losyabsolwentow.ibe.edu.pl/
