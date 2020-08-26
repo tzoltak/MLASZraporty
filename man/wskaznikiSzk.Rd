@@ -4,13 +4,17 @@
 \name{wskaznikiSzk}
 \alias{wskaznikiSzk}
 \title{Przykladowe wskazniki obliczone na poziomie szkol.}
-\format{Ramka danych z 7 wierszami (szkołami) i 71 kolumnami (wskaznikami).}
+\format{
+Ramka danych z 20 wierszami (szkołami) i 74 kolumnami (wskaznikami).
+}
 \usage{
 wskaznikiSzk
 }
 \description{
 Zanonimizowane wskaźniki dla kilku szkół z I rundy monitoringu
 losów absolwentów szkół zawodowych zrealizowanej w ramach projektu MLEZAiMD,
-na podstawie których można wygenerować przykładowe raporty.
+na podstawie których można wygenerować przykładowe raporty. Wartości
+wskaźników w grupach porównawczych tych sżkół zawiera ramka danych
+\code{wskaznikiSzkGrPor}.
 }
 \keyword{datasets}

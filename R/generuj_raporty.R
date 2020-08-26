@@ -12,25 +12,47 @@
 #' @param kolumnaNazwaPliku opcjonalnie wyrażenie lub ciąg znaków - kolumna
 #' ramki danych przekazanej argumentem \code{wskazniki}, zawierająca nazwy
 #' plików, do których mają zostać wydrukowane raporty
+#' @param kolumnaIdGrupy opcjonalnie wyrażenie lub ciąg znaków - kolumna
+#' występująca zarówno w ramce danych przekazanej argumentem \code{wskazniki},
+#' jak i w ramce danych przekazanej argumentem \code{wskaznikiGrPor},
+#' zawierająca idenyfikatory grup, dla których mają zostać przygotowane raporty
 #' @param parametry lista parametrów przekazywanych do szablonu
 #' @return wektor tekstowy z nazwami utworzonych raportów (niewidocznie)
 #' @export
-#' @importFrom tibble is_tibble
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom rlang ensym
 #' @importFrom rmarkdown yaml_front_matter
 generuj_raporty = function(szablon, wskazniki, wskaznikiGrPor = NULL,
-                           kolumnaNazwaPliku = NULL, parametry = list()) {
+                           kolumnaNazwaPliku = NULL, kolumnaIdGrupy = "grupa",
+                           parametry = list()) {
   stopifnot(is.character(szablon), length(szablon) == 1,
-            is_tibble(wskazniki) | is.data.frame(wskazniki),
-            is_tibble(wskaznikiGrPor) | is.data.frame(wskaznikiGrPor) |
-              is.null(wskaznikiGrPor),
+            is.data.frame(wskazniki),
+            is.data.frame(wskaznikiGrPor) | is.null(wskaznikiGrPor),
             is.list(parametry))
   szablon = paste0(sub("[.]Rmd$", "", szablon), ".Rmd")
   if (!(szablon %in% suppressMessages(wypisz_dostepne_szablony()))) {
     stop("Szablon o podanej nazwie nie jest dostępny.\nSprawdź dostępne szablony korzystając z funkcji wypisz_dostepne_szablony().")
   }
   szablonZeSciezka = paste0(okresl_lokalizacje_szablonow(), "/", szablon)
+
+  czyKolumnaIdGrupy = tryCatch(!is.null(kolumnaIdGrupy),
+                               error = function(e) {return(TRUE)})
+  if (czyKolumnaIdGrupy) {
+    kolumnaIdGrupy = ensym(kolumnaIdGrupy)
+  } else {
+    kolumnaIdGrupy = quote(grupa)
+  }
+  stopifnot(as.character(kolumnaIdGrupy) %in% names(wskazniki))
+  if (any(duplicated(wskazniki[[kolumnaIdGrupy]]))) {
+    stop("Wartości w kolumnie, na którą wskazuje argument 'kolumnaIdGrupy' (domyślnie jest to kolumna 'grupa') muszą być unikalne w zbiorze wskaźników.")
+  }
+  if (!is.null(wskaznikiGrPor)) {
+    stopifnot(as.character(kolumnaIdGrupy) %in% names(wskaznikiGrPor))
+    if (any(duplicated(wskaznikiGrPor[[kolumnaIdGrupy]]))) {
+      stop("Wartości w kolumnie, na którą wskazuje argument 'kolumnaIdGrupy' (domyślnie jest to kolumna 'grupa') muszą być unikalne w zbiorze wskaźników w grupach porównawczych.")
+    }
+  }
+
   czyKolumnaNazwaPliku = tryCatch(!is.null(kolumnaNazwaPliku),
                                   error = function(e) {return(TRUE)})
   if (czyKolumnaNazwaPliku) {
@@ -89,12 +111,14 @@ generuj_raporty = function(szablon, wskazniki, wskaznikiGrPor = NULL,
                           ".", parametry$typDokumentu)
     }
     generuj_raport(szablonZeSciezka, nazwaPliku,
-                    parametry = c(parametry,
-                                  wskazniki[i, ] %>%
-                                    select(one_of(setdiff(niezbedneParametry,
-                                                          names(parametry)))) %>%
-                                    as.list()),
-                    wskazniki[i, ], wskaznikiGrPor)
+                   parametry = c(parametry,
+                                 wskazniki[i, ] %>%
+                                   select(one_of(setdiff(niezbedneParametry,
+                                                         names(parametry)))) %>%
+                                   as.list()),
+                   wskazniki[i, ],
+                   wskaznikiGrPor[wskaznikiGrPor[[kolumnaIdGrupy]] %in%
+                     wskazniki[[kolumnaIdGrupy]][i], ])
     nazwyRaportow = c(nazwyRaportow, nazwaPliku)
     setTxtProgressBar(pb, i)
   }
@@ -109,8 +133,9 @@ generuj_raporty = function(szablon, wskazniki, wskaznikiGrPor = NULL,
 #' @param parametry lista parametrów przekazywanych do szablonu
 #' @param wskaznikiGrupa ramka danych zawierająca tylko jeden wiersz, ze
 #' wskaznikami grupy, dla której ma zostać utworzony raport
-#' @param wskaznikiGrPor opcjonalnie ramka danych ze wskaźnikami grup
-#' porównawczych, do wykorzystania przy tworzeniu raportu
+#' @param wskaznikiGrPor opcjonalnie ramka danych zawierająca tylko jeden
+#' wiersz, ze wskaźnikami grupy porównawczej, do wykorzystania przy tworzeniu
+#' raportu
 #' @return obiekt zwracany przez funkcję \code{\link[knitr]{knit_meta}}
 #' zawierający metadane dotyczące utworzonego raportu
 #' @importFrom tibble is_tibble
@@ -121,11 +146,13 @@ generuj_raport = function(szablonZeSciezka, nazwaPliku, parametry,
   stopifnot(is.character(szablonZeSciezka), length(szablonZeSciezka) == 1,
             is.character(nazwaPliku), length(nazwaPliku) == 1,
             is.list(parametry),
-            is_tibble(wskaznikiGrupa) | is.data.frame(wskaznikiGrupa),
-            is_tibble(wskaznikiGrPor) | is.data.frame(wskaznikiGrPor) |
-              is.null(wskaznikiGrPor))
+            is.data.frame(wskaznikiGrupa),
+            is.data.frame(wskaznikiGrPor) | is.null(wskaznikiGrPor))
   stopifnot(nrow(wskaznikiGrupa) == 1,
             file.access(szablonZeSciezka, 4) == 0)
+  if (!is.null(wskaznikiGrPor)) {
+    stopifnot(nrow(wskaznikiGrPor) == 1)
+  }
   parametry = lapply(parametry, function(x) {
     if (is.character(x)) {
       return(gsub('"', '\\\\"', x))

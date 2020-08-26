@@ -53,22 +53,21 @@ library(dplyr)
 progLiczebnosci = params$progLiczebnosci
 typDokumentu = params$typDokumentu
 wyrownanieTabWykr = params$wyrownanieTabWykr
-if (params$plikZObiektami != "") {
+if (params$plikZObiektami != "") {# to działa przy ręcznym prototypowaniu
   obiektyZeWskaznikami = load(params$plikZObiektami)
   szkola = get(params$obiektWskazniki) %>% 
     filter(SZK_kod %in% params$SZK_kod)
   porownanie = get(params$obiektWskaznikiPorownanie)
-} else {
+  porownanie = porownanie %>%
+    filter(SZK_kod %in% szkola$SZK_kod)
+} else {# to działa przy wywoływaniu przez generuj_raport()
   szkola = get(params$obiektWskazniki)
   porownanie = get(params$obiektWskaznikiPorownanie)
 }
-porownanie = porownanie %>%
-    filter(GRUPA_kod %in% szkola$GRUPA_kod)
-
 
 moznaNaStudia = !grepl("zasadnicza|branżowa", szkola$SZK_typ[[1]])
 if (!("SZK_l_uczn_pop" %in% names(szkola))) {
-  szkola$SZK_l_uczn_pop = list(NA)
+  szkola$SZK_l_uczn_pop = NA
 }
 ```
 
@@ -166,8 +165,8 @@ if (szkola$praca_nauka_6m[[1]]$n >= progLiczebnosci |
   cat(paste0("Sytuacja absolwentów podawana jest w podziale na 4 kategorie:\n\n
   + *tylko pracują* - osoby, które pracują (bez względu na formę zatrudnienia), ale nie kontynuują nauki w innej szkole", ifelse(szkola$SZK_typ %in% "Zasadnicza szkoła zawodowa", "", " lub na studiach"), ",
   + *pracują i uczą się* - osoby, które jednocześnie pracują (bez względu na formę zatrudnienia) oraz kontynuują naukę w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), ",
-  + *tylko się uczą* - osoby, które nie pracują (w jakiejolwiek formie zatrudnienia), ale kontynuują naukę w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), ",\n
-  + *nie pracują i nie uczą się* - osoby, które nie pracują (w jakiejolwiek formie zatrudnienia), ani nie kontynuują nauki w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), "
+  + *tylko się uczą* - osoby, które nie pracują (w żadnej formie zatrudnienia), ale kontynuują naukę w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), ",\n
+  + *nie pracują i nie uczą się* - osoby, które nie pracują (w żadnej formie zatrudnienia) ani nie kontynuują nauki w innej szkole", ifelse(moznaNaStudia, "", " lub na studiach"), "
 
 Sytuacja podawana jest w dwóch momentach: w szóstym miesiącu od terminu ukończenia szkoły (oznaczony *w szóstym miesiącu* w tabeli poniżej) i w dziewiątym miesiącu od terminu ukończenia szkoły (oznaczony *w dziewiątym miesiącu* w tabeli poniżej).\n\n"))
   
@@ -386,7 +385,7 @@ if (szkola$praca_forma2_9m[[1]]$n >= progLiczebnosci) {
 
 ### 6.3.3. Praca (prace) wykonywana w dziewiątym miesiącu po ukończeniu szkoły - tylko osoby, które się w tym czasie nie uczyły
 
-`r komunikat_o_liczebnosci(szkola$praca_forma2_bu_9m[[1]], progLiczebnosci, ", którzy pracowali ale nie uczyli się w dziewiątym miesiącu od ukończenia szkoły")`
+`r komunikat_o_liczebnosci(szkola$praca_forma2_bu_9m[[1]], progLiczebnosci, ", którzy pracowali, ale nie uczyli się w dziewiątym miesiącu od ukończenia szkoły")`
 
 `r ifelse(szkola$praca_forma2_bu_9m[[1]]$n >= progLiczebnosci & !(typDokumentu %in% "pdf"), "Jeśli któraś z badanych osób pracowała w tym czasie w kilku różnych formach zatrudnienia, to każdą z nich zliczono oddzielnie. Dlatego wartości w kolumnie % mogą sumować się do więcej niż 100.", "")`
 
@@ -429,7 +428,7 @@ if (szkola$praca_czas_p9m[[1]]$n >= progLiczebnosci) {
   tab = rbind(tab,
               tab1 %>%
                 rename(wskaznik = `% okresu w jakim absolwenci byli zatrudnieni`) %>% 
-                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+                mutate(grupa = "bez względu na\nkontynuowanie nauki"))
 }
 if (szkola$praca_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
   tab2 =
@@ -479,7 +478,7 @@ tab = data.frame(wskaznik = vector("character", 0),
                  `w grupie\nporównawczej` = vector("numeric", 0))
 if (szkola$praca_czas_p9m_rozklad[[1]]$n >= progLiczebnosci) {
   tab1 =
-    data.frame(grupa = "bez względu na\nkontynuowania nauki",
+    data.frame(grupa = "bez względu na\nkontynuowanie nauki",
                etykieta = names(szkola$praca_czas_p9m_rozklad[[1]])[-1],
                `w tej szkole` = 100 * unlist(szkola$praca_czas_p9m_rozklad[[1]][-1]) /
                  szkola$praca_czas_p9m_rozklad[[1]]$n %>% round(1),
@@ -527,7 +526,7 @@ if (szkola$praca_czas_uop_p9m[[1]]$n >= progLiczebnosci) {
   tab = rbind(tab,
               tab1 %>%
                 rename(wskaznik = `% okresu w jakim absolwenci byli zatrudnieni`) %>% 
-                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+                mutate(grupa = "bez względu na\nkontynuowanie nauki"))
 }
 if (szkola$praca_czas_gdy_bez_nauki_uop_p9m[[1]]$n >= progLiczebnosci) {
   tab2 =
@@ -577,7 +576,7 @@ tab = data.frame(wskaznik = vector("character", 0),
                  `w grupie\nporównawczej` = vector("numeric", 0))
 if (szkola$praca_czas_uop_p9m_rozklad[[1]]$n >= progLiczebnosci) {
   tab1 =
-    data.frame(grupa = "bez względu na\nkontynuowania nauki",
+    data.frame(grupa = "bez względu na\nkontynuowanie nauki",
                etykieta = names(szkola$praca_czas_uop_p9m_rozklad[[1]])[-1],
                `w tej szkole` = 100 * unlist(szkola$praca_czas_uop_p9m_rozklad[[1]][-1]) /
                  szkola$praca_czas_uop_p9m_rozklad[[1]]$n %>% round(1),
@@ -786,7 +785,7 @@ if (szkola$bezrobocie_czas_p9m[[1]]$n >= progLiczebnosci) {
   tab = rbind(tab,
               tab1 %>%
                 rename(wskaznik = `% okresu w jakim absolwenci byli zarejestrowani jako bezrobotni`) %>% 
-                mutate(grupa = "bez względu na\nkontynuowanie nauku"))
+                mutate(grupa = "bez względu na\nkontynuowanie nauki"))
 }
 if (szkola$bezrobocie_czas_gdy_bez_nauki_p9m[[1]]$n >= progLiczebnosci) {
   tab2 =

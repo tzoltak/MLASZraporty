@@ -58,20 +58,19 @@ library(dplyr)
 progLiczebnosci = params$progLiczebnosci
 typDokumentu = params$typDokumentu
 wyrownanieTabWykr = params$wyrownanieTabWykr
-if (params$plikZObiektami != "") {
+if (params$plikZObiektami != "") {# to działa przy ręcznym prototypowaniu
   obiektyZeWskaznikami = load(params$plikZObiektami)
   powiat = get(params$obiektWskazniki) %>% 
     filter(pow %in% params$pow,
            UCZ_zawod %in% params$UCZ_zawod)
   porownanie = get(params$obiektWskaznikiPorownanie)
-} else {
+  porownanie = porownanie %>%
+    filter(woj %in% powiat$woj,
+           UCZ_zawod %in% params$UCZ_zawod)
+} else {# to działa przy wywoływaniu przez generuj_raport()
   powiat = get(params$obiektWskazniki)
   porownanie = get(params$obiektWskaznikiPorownanie)
 }
-porownanie = porownanie %>%
-    filter(woj %in% powiat$woj,
-           UCZ_zawod %in% params$UCZ_zawod)
-
 ```
 
 `r ifelse(typDokumentu %in% "pdf", "---", "")`

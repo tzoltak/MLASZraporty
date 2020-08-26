@@ -22,8 +22,9 @@ generuj_raport(
 \item{wskaznikiGrupa}{ramka danych zawierająca tylko jeden wiersz, ze
 wskaznikami grupy, dla której ma zostać utworzony raport}
 
-\item{wskaznikiGrPor}{opcjonalnie ramka danych ze wskaźnikami grup
-porównawczych, do wykorzystania przy tworzeniu raportu}
+\item{wskaznikiGrPor}{opcjonalnie ramka danych zawierająca tylko jeden
+wiersz, ze wskaźnikami grupy porównawczej, do wykorzystania przy tworzeniu
+raportu}
 }
 \value{
 obiekt zwracany przez funkcję \code{\link[knitr]{knit_meta}}

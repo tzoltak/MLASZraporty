@@ -1,3 +1,14 @@
+# MLASZraporty 0.2.0 ()
+
+- Duże zmiany:
+  - Zmiana nazw szablonów na "raport_szkoly_1rm.Rmd" i "raport_powiaty_1rm.Rmd".
+  - Dostosowanie pakietu do zmian w sposobie obliczania wskaźnikow zagregowanych przez pakiet MLASZdane w wersji 0.4.0 (grupy porównawcze definiowane oddzielnie dla każdej analizowanej grupy - zbiór wartości wskaźników w grupach porównawczych ma teraz zawsze tyle samo wierszy, co zbiór wartości wskaźników w analizowanych grupach):
+    - Przeniesienie na funkcję generuj_raporty() odpowiedzialności za wybór odpowiedniego wiersza z ramki danych z wartościami wskaźników w grupach porównawczych (wcześniej odpowiedzialny był za to konkretny szablon raportu).
+    - Nowy opcjonalny argument generuj_raporty() umożliwiający wskazanie kolumny zawierającej identyfikator analizowanej grupy (występujący również w zbiorze z wartościami wskaźników w grupach porównawczych).
+    - Przykładowe zbiory danych dołączone do pakietu dostosowoano do formatu, w jakim zwraca je pakiet MLASZdane w wersji 0.4.0.
+- Pomniejsze poprawki:
+  - Poprawki literówek w szablonie raportu szkół (z 1. rundy monitoringu).
+
 # MLASZraporty 0.1.4 (26.02.2020)
 
 - Wprowadzono nowe szablony raportóW dla powiato-zawodów.
