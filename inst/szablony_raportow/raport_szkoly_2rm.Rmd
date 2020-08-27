@@ -1,8 +1,8 @@
 ---
 title: "Raport z internetowego badania uczniów ostatnich klas w roku szkolnym 2019/2020"
 subtitle: |
-  | `r params$nazwa_szkoly`
-  | `r params$adres_szkoly`
+  | `r get(params$obiektWskazniki)$dane_szkoly[[1]]$'nazwa szkoły'`
+  | `r get(params$obiektWskazniki)$dane_szkoly[[1]]$'adres szkoły'`
 output:
   pdf_document:
     dev: cairo_pdf
@@ -28,8 +28,6 @@ params:
   progLiczebnosci: 10
   typDokumentu: "pdf"
   wyrownanieTabWykr: "center"
-  nazwa_szkoly: "nazwa"
-  adres_szkoly: "ulica"
 wskazniki:
   wskazniki: "szkola"
   wskaznikiGrPor: "wojSzk"
@@ -42,12 +40,12 @@ library(MLASZraporty)
 library(kableExtra)
 # if (!exists("params")) {
 #   params = list(typDokumentu = "pdf",
-#                 plikZObiektami = "C:/Users/Bartek/Documents/01_IBE/00_pakiety/MLASZraporty/data/wskazniki_do_szablonu_dane2rm.RData",
+#                 plikZObiektami = "C:/Users/Bartek/Documents/01_IBE/00_pakiety/MLASZraporty/data/wskazniki_do_szablonu_dane2rm_przyklady.RData",
 #                 obiektWskazniki = "szkola",
 #                 obiektWskaznikiPorownanie = "wojSzk",
 #                 nazwa_szkoly = "TECHNIKUM NR 1",
 #                 adres_szkoly = "ul. Rzeszowska 78",
-#                 ID_rspo = "17288",
+#                 ID_rspo = "31454",
 #                 S1 = "2",
 #                 progLiczebnosci = 10,
 #                 wyrownanieTabWykr = "center")
@@ -72,23 +70,23 @@ wojSzk = wojSzk %>%
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 tab_num = function() {
-  nr = get0("___nrTabeli___", .GlobalEnv, ifnotfound = 1)
-  assign("___nrTabeli___", nr + 1, envir = .GlobalEnv)
+  nr = get0("___nrTabeli___", parent.frame(), ifnotfound = 1)
+  assign("___nrTabeli___", nr + 1, envir = parent.frame())
   return(nr)
 }
 wyk_num = function() {
-  nr = get0("___nrWykresu___", .GlobalEnv, ifnotfound = 1)
-  assign("___nrWykresu___", nr + 1, envir = .GlobalEnv)
+  nr = get0("___nrWykresu___", parent.frame(), ifnotfound = 1)
+  assign("___nrWykresu___", nr + 1, envir = parent.frame())
   return(nr)
 }
 head_2 = function() {
-  nr = get0("___nrRozdz2___", .GlobalEnv, ifnotfound = 1)
-  assign("___nrRozdz2___", nr + 1, envir = .GlobalEnv)
+  nr = get0("___nrRozdz2___", parent.frame(), ifnotfound = 1)
+  assign("___nrRozdz2___", nr + 1, envir = parent.frame())
   return(nr)
 }
 head_3 = function() {
-  nr = get0("___nrRozdz3___", .GlobalEnv, ifnotfound = 1)
-  assign("___nrRozdz3___", nr + 1, envir = .GlobalEnv)
+  nr = get0("___nrRozdz3___", parent.frame(), ifnotfound = 1)
+  assign("___nrRozdz3___", nr + 1, envir = parent.frame())
   return(nr)
 }
 ```
@@ -428,8 +426,41 @@ if (szkola$przyg_do_zaw[[1]]$n >= progLiczebnosci) {
            `Podstawa\nprocentowania` = respN)
   tab1 = tab1 %>% 
     filter(`Podstawa\nprocentowania` >= progLiczebnosci)
-  if (nrow(tab1) >= 1) {
+  if (nrow(tab1) %in% 1:3) {
     cat(
+      "Poniższa tabela zawiera informacje na temat poziomu zadowolenia uczniów z przygotowania ich przez szkołę do wykonywania poszczególnych zawodów, których się w niej uczyli. Informacje są prezentowane w odniesieniu do zawodów, w których kształciło się co najmniej 10 respondentów. Wyniki uzyskane wśród uczniów Państwa szkoły zostały zestawione z odpowiedziami uczniów kształcących się w tych samych zawodach w innych szkołach z województwa ",
+      szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
+      ".\n\n",
+      sep = ""
+    )
+    tab2 = data.frame(wojSzk$l_zawod_przyg[[1]])
+    tab2 = tab2 %>% 
+      rename(`Zawód` = S2_zawod,
+             `%` = przygotowanie,
+             `Podstawa\nprocentowania` = respN)
+    
+    tab = tab1 %>% 
+      left_join(tab2, by = "Zawód")
+    
+    tab = tab %>% 
+      kable("latex", booktabs = TRUE, escape = FALSE,
+            col.names = NULL,
+            align = "lcccc",
+            format.args = list(decimal.mark = ",", big.mark = " "),
+            caption = cat(
+              "**Tabela ",
+              tab_num(),
+              ": Odsetek uczniów twierdzących, że szkoła przygotowała ich do wykonywania zawodu, którego się w niej uczyli**\n\n",
+              sep = ""
+            )) %>%
+      kable_styling(position = wyrownanieTabWykr) %>%
+      add_header_above(c("zawód", "%" = 1, "Podstawa\nprocentowania" = 1, "%" = 1, "Podstawa\nprocentowania" = 1)) %>% 
+      add_header_above(c("", "Państwa szkoła" = 2, "pozostałe szkoły\nz województwa" = 2))
+    return(tab)
+  } else if (nrow(tab1) >= 4) {
+    cat(
+      "\\newpage",
+      "\n",
       "Poniższa tabela zawiera informacje na temat poziomu zadowolenia uczniów z przygotowania ich przez szkołę do wykonywania poszczególnych zawodów, których się w niej uczyli. Informacje są prezentowane w odniesieniu do zawodów, w których kształciło się co najmniej 10 respondentów. Wyniki uzyskane wśród uczniów Państwa szkoły zostały zestawione z odpowiedziami uczniów kształcących się w tych samych zawodach w innych szkołach z województwa ",
       szkola$formy_gramatyczne[[1]]$woj_nazwa_dop,
       ".\n\n",
@@ -522,7 +553,7 @@ if (szkola$ocena_pnz[[1]]$n >= progLiczebnosci) {
     ggtitle(cat(
     "**Wykres ",
     wyk_num(),
-    ": Opinie uczniów o tym, czy co najmniej jedna forma praktycznej nauki zawodu przygotowała ich dobrze lub bardzo dobrze do wykonywania wyuczonego zawodu**\n\n",
+    ": Opinie uczniów o tym, że co najmniej jedna forma praktycznej nauki zawodu przygotowała ich dobrze lub bardzo dobrze do wykonywania wyuczonego zawodu**\n\n",
     sep = ""
   ))
   print(wykres)
@@ -566,7 +597,7 @@ if ((szkola$ocena_pnz[[1]]$n >= progLiczebnosci) & (szkola$S1 == 2 | szkola$S1 =
     rename(`formy PNZ` = rozklad)
   
   tab = tab %>% 
-    kable("latex", booktabs = TRUE, escape = FALSE,
+    kable("latex", booktabs = TRUE, escape = FALSE, col.names = NULL,
           align = "lc",
           format.args = list(decimal.mark = ",", big.mark = " "),
           caption = cat(
@@ -602,7 +633,7 @@ if ((szkola$ocena_pnz[[1]]$n >= progLiczebnosci) & (szkola$S1 == 2 | szkola$S1 =
     rename(`formy PNZ` = rozklad)
   
   tab = tab %>% 
-    kable("latex", booktabs = TRUE, escape = FALSE,col.names = NULL,
+    kable("latex", booktabs = TRUE, escape = FALSE, col.names = NULL,
           align = "lc",
           format.args = list(decimal.mark = ",", big.mark = " "),
           caption = cat(
@@ -782,7 +813,7 @@ if (szkola$przyg_zaw_zaj_ANY[[1]]$n >= progLiczebnosci) {
     ggtitle(cat(
     "**Wykres ",
     wyk_num(),
-    ": Opinie uczniów o tym na ile zajęcia praktyczne przygotowały ich do wykonywania zawodu, którego uczyli się w tej szkole**\n\n",
+    ": Opinie uczniów o tym, że zajęcia praktyczne przygotowały ich do wykonywania zawodu, którego uczyli się w tej szkole**\n\n",
     sep = ""
   ))
   print(wykres)
